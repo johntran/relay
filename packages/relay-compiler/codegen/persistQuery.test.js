@@ -1,6 +1,6 @@
-jest.mock('./utils', () => ({md5: global.td.function('mockMd5')}));
+jest.mock('../util/md5', () => ({md5: global.td.function('mockMd5')}));
 
-import {md5} from './RelayFileWriter';
+import {md5} from '../util/md5';
 import {queryMap, persistQuery} from './persistQuery';
 
 describe('persistQuery', () => {

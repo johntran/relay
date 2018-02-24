@@ -20,6 +20,8 @@ const crypto = require('crypto');
 const graphql = require('graphql');
 const invariant = require('invariant');
 const path = require('path');
+const md5 = require('../util/md5');
+
 const writeRelayGeneratedFile = require('./writeRelayGeneratedFile');
 
 const {
@@ -352,13 +354,6 @@ class RelayFileWriter implements FileWriterInterface {
       return allOutputDirectories;
     });
   }
-}
-
-export function md5(x: string): string {
-  return crypto
-    .createHash('md5')
-    .update(x, 'utf8')
-    .digest('hex');
 }
 
 function validateConfig(config: Object): void {
