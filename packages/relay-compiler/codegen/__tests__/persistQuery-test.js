@@ -1,7 +1,7 @@
-jest.mock('../util/md5');
+jest.mock('../../util/md5');
 
-import {queryMap, persistQuery} from './persistQuery';
-const md5 = require('../util/md5');
+import {queryMap, persistQuery} from '../persistQuery';
+const md5 = require('../../util/md5');
 
 describe('persistQuery', () => {
   const animalQuery = 'query { animal }';
