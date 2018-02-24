@@ -1,4 +1,6 @@
 //@flow
+import crypto from 'crypto';
+
 const md5 = (x: string): string => {
   return crypto
     .createHash('md5')
@@ -6,4 +8,4 @@ const md5 = (x: string): string => {
     .digest('hex');
 };
 
-export default md5;
+module.exports = md5;

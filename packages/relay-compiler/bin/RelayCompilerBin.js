@@ -221,7 +221,7 @@ function getRelayFileWriter(baseDir: string, persist: boolean) {
         inputFieldWhiteListForFlow: [],
         schemaExtensions,
         useHaste: false,
-        persistQuery: persist ? persistQuery : null,
+        persistQuery: persist ? persistQuery : undefined,
       },
       onlyValidate,
       schema,

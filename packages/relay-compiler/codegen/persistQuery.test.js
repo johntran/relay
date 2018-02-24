@@ -1,31 +1,33 @@
-jest.mock('../util/md5', () => ({md5: global.td.function('mockMd5')}));
+jest.mock('../util/md5');
 
-import {md5} from '../util/md5';
 import {queryMap, persistQuery} from './persistQuery';
+const md5 = require('../util/md5');
 
 describe('persistQuery', () => {
   const animalQuery = 'query { animal }';
   const humanQuery = 'query { human }';
-  
+
+  md5.mockImplementation(query => {
+    if (query === animalQuery) {
+      return 'animalMd5';
+    } else if (query === humanQuery) {
+      return 'humanMd5';
+    }
+    return 'unknownMd5';
+  });
+
   beforeEach(() => {
     delete queryMap.animalMd5;
     delete queryMap.humanMd5;
-
-    td.reset();
   });
 
   test('should hash and store query correctly', async () => {
-    td.when(md5(animalQuery)).thenReturn('animalMd5');
-
     const queryId = await persistQuery(animalQuery);
     expect(queryId).toEqual('animalMd5');
     expect(queryMap[queryId]).toEqual(animalQuery);
   });
 
   test('should hash and store all queries correctly', async () => {
-    td.when(md5(animalQuery)).thenReturn('animalMd5');
-    td.when(md5(humanQuery)).thenReturn('humanMd5');
-
     const queryId1 = await persistQuery(animalQuery);
     const queryId2 = await persistQuery(humanQuery);
 

@@ -131,7 +131,7 @@ class CodegenRunner {
       if (result === 'HAS_CHANGES') {
         hasChanges = true;
 
-        if(this._persist) {
+        if (this._persist) {
           this.persistQueryMap();
         }
       }
