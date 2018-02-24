@@ -14,10 +14,12 @@ const RelayParser = require('../core/RelayParser');
 const RelayValidator = require('../core/RelayValidator');
 
 const compileRelayArtifacts = require('./compileRelayArtifacts');
-const crypto = require('crypto');
 const graphql = require('graphql');
 const invariant = require('invariant');
 const path = require('path');
+const fs = require('fs');
+const md5 = require('../util/md5');
+
 const writeRelayGeneratedFile = require('./writeRelayGeneratedFile');
 
 const {
@@ -58,6 +60,7 @@ export type WriterConfig = {
   outputDir?: ?string,
   generatedDirectories?: Array<string>,
   persistQuery?: (text: string) => Promise<string>,
+  persistOutput?: string,
   platform?: string,
   schemaExtensions: Array<string>,
   noFutureProofEnums: boolean,
@@ -159,6 +162,45 @@ function compileAll({
     transformedQueryContext,
     transformedTypeContext,
   };
+}
+
+/**
+ * Find all *.queryMap.json and write it into a single file.
+ * @param allOutputDirectories
+ */
+function writeCompleteQueryMap({
+  allOutputDirectories,
+  config: writerConfig,
+  reporter,
+}: {|
+  allOutputDirectories: Map<string, CodegenDirectory>,
+  config: WriterConfig,
+  reporter: Reporter,
+|}): void {
+  const queryMapFilePath =
+    writerConfig.persistOutput ||
+    `${writerConfig.baseDir}/complete.queryMap.json`;
+  try {
+    let queryMapJson = {};
+    allOutputDirectories.forEach(d => {
+      fs.readdirSync(d._dir).forEach(f => {
+        if (f.endsWith('.queryMap.json')) {
+          const singleQueryMap = JSON.parse(
+            fs.readFileSync(path.join(d._dir, f), 'utf8'),
+          );
+          queryMapJson = {
+            ...queryMapJson,
+            ...singleQueryMap,
+          };
+        }
+      });
+    });
+
+    fs.writeFileSync(queryMapFilePath, JSON.stringify(queryMapJson, null, 2));
+    reporter.reportMessage(`Complete queryMap written to ${queryMapFilePath}`);
+  } catch (err) {
+    reporter.reportError('RelayFileWriter.writeCompleteQueryMap', err);
+  }
 }
 
 function writeAll({
@@ -357,12 +399,21 @@ function writeAll({
         allOutputDirectories.forEach(dir => {
           dir.deleteExtraFiles();
         });
-      }
-      if (sourceControl && !onlyValidate) {
-        await CodegenDirectory.sourceControlAddRemove(
-          sourceControl,
-          Array.from(allOutputDirectories.values()),
-        );
+
+        if (writerConfig.persistQuery) {
+          writeCompleteQueryMap({
+            allOutputDirectories,
+            config: writerConfig,
+            reporter,
+          });
+        }
+
+        if (sourceControl && !onlyValidate) {
+          await CodegenDirectory.sourceControlAddRemove(
+            sourceControl,
+            Array.from(allOutputDirectories.values()),
+          );
+        }
       }
     } catch (error) {
       let details;
@@ -376,16 +427,8 @@ function writeAll({
         'Error writing modules:\n' + String(error.stack || error),
       );
     }
-
     return allOutputDirectories;
   });
-}
-
-function md5(x: string): string {
-  return crypto
-    .createHash('md5')
-    .update(x, 'utf8')
-    .digest('hex');
 }
 
 module.exports = {
