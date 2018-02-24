@@ -18,6 +18,8 @@ const Profiler = require('../core/GraphQLCompilerProfiler');
 
 const invariant = require('invariant');
 const path = require('path');
+const fs = require('fs');
+const {queryMap} = require('../../codegen/persistQuery');
 
 const {Map: ImmutableMap} = require('immutable');
 
@@ -75,6 +77,7 @@ class CodegenRunner {
   parserWriters: {[parser: string]: Set<string>};
   _reporter: GraphQLReporter;
   _sourceControl: ?SourceControl;
+  _persist: boolean;
 
   constructor(options: {
     parserConfigs: ParserConfigs,
@@ -82,6 +85,7 @@ class CodegenRunner {
     onlyValidate: boolean,
     reporter: GraphQLReporter,
     sourceControl: ?SourceControl,
+    persist: boolean,
   }) {
     this.parsers = {};
     this.parserConfigs = options.parserConfigs;
@@ -89,6 +93,7 @@ class CodegenRunner {
     this.onlyValidate = options.onlyValidate;
     this._reporter = options.reporter;
     this._sourceControl = options.sourceControl;
+    this._persist = options.persist;
 
     this.parserWriters = {};
     for (const parser in options.parserConfigs) {
@@ -125,9 +130,25 @@ class CodegenRunner {
       }
       if (result === 'HAS_CHANGES') {
         hasChanges = true;
+
+        if(this._persist) {
+          this.persistQueryMap();
+        }
       }
     }
     return hasChanges ? 'HAS_CHANGES' : 'NO_CHANGES';
+  }
+
+  persistQueryMap(): void {
+    const queryMapOutputFile = `./queryMap.json`;
+    try {
+      fs.writeFileSync(queryMapOutputFile, JSON.stringify(queryMap));
+      console.log(`Query map written to: ${queryMapOutputFile}`);
+    } catch (err) {
+      if (err) {
+        return console.log(err);
+      }
+    }
   }
 
   async compile(writerName: string): Promise<CompileResult> {

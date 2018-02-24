@@ -43,11 +43,9 @@ import type {DocumentNode, GraphQLSchema, ValidationContext} from 'graphql';
 
 const {isExecutableDefinitionAST} = SchemaUtils;
 
-export type GenerateExtraFiles = (
-  getOutputDirectory: (path?: string) => CodegenDirectory,
-  compilerContext: CompilerContext,
-  getGeneratedDirectory: (definitionName: string) => CodegenDirectory,
-) => void;
+export type GenerateExtraFiles = (getOutputDirectory: (path?: string) => CodegenDirectory,
+                                  compilerContext: CompilerContext,
+                                  getGeneratedDirectory: (definitionName: string) => CodegenDirectory,) => void;
 
 export type ValidationRule = (context: ValidationContext) => any;
 
@@ -83,14 +81,14 @@ class RelayFileWriter implements FileWriterInterface {
   _sourceControl: ?SourceControl;
 
   constructor({
-    config,
-    onlyValidate,
-    baseDocuments,
-    documents,
-    schema,
-    reporter,
-    sourceControl,
-  }: {|
+                config,
+                onlyValidate,
+                baseDocuments,
+                documents,
+                schema,
+                reporter,
+                sourceControl,
+              }: {|
     config: WriterConfig,
     onlyValidate: boolean,
     baseDocuments: ImmutableMap<string, DocumentNode>,
@@ -246,9 +244,9 @@ class RelayFileWriter implements FileWriterInterface {
 
       const persistQuery = this._config.persistQuery
         ? Profiler.instrumentWait(
-            this._config.persistQuery,
-            'RelayFileWriter:persistQuery',
-          )
+          this._config.persistQuery,
+          'RelayFileWriter:persistQuery',
+        )
         : null;
 
       try {
@@ -309,7 +307,7 @@ class RelayFileWriter implements FileWriterInterface {
                 invariant(
                   outputDirectory,
                   'RelayFileWriter: cannot generate extra files without specifying ' +
-                    'an outputDir in the config or passing it in.',
+                  'an outputDir in the config or passing it in.',
                 );
                 let outputDir = allOutputDirectories.get(outputDirectory);
                 if (!outputDir) {
@@ -337,7 +335,8 @@ class RelayFileWriter implements FileWriterInterface {
         let details;
         try {
           details = JSON.parse(error.message);
-        } catch (_) {}
+        } catch (_) {
+        }
         if (
           details &&
           details.name === 'GraphQL2Exception' &&
@@ -355,7 +354,7 @@ class RelayFileWriter implements FileWriterInterface {
   }
 }
 
-function md5(x: string): string {
+export function md5(x: string): string {
   return crypto
     .createHash('md5')
     .update(x, 'utf8')
@@ -366,7 +365,7 @@ function validateConfig(config: Object): void {
   if (config.buildCommand) {
     process.stderr.write(
       'WARNING: RelayFileWriter: For RelayFileWriter to work you must ' +
-        'replace config.buildCommand with config.formatModule.\n',
+      'replace config.buildCommand with config.formatModule.\n',
     );
   }
 }

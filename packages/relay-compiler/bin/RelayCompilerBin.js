@@ -23,6 +23,7 @@ const {
 const RelayJSModuleParser = require('../core/RelayJSModuleParser');
 const RelayFileWriter = require('../codegen/RelayFileWriter');
 const RelayIRTransforms = require('../core/RelayIRTransforms');
+const persistQuery = require('../codegen/persistQuery');
 
 const formatGeneratedModule = require('../codegen/formatGeneratedModule');
 const fs = require('fs');
@@ -94,6 +95,7 @@ async function run(options: {
   watch?: ?boolean,
   validate: boolean,
   quiet: boolean,
+  persist: boolean,
 }) {
   const schemaPath = path.resolve(process.cwd(), options.schema);
   if (!fs.existsSync(schemaPath)) {
@@ -163,7 +165,7 @@ Ensure that one such file exists in ${srcDir} or its parents.
   };
   const writerConfigs = {
     js: {
-      getWriter: getRelayFileWriter(srcDir),
+      getWriter: getRelayFileWriter(srcDir, options.persist),
       isGeneratedFile: (filePath: string) =>
         filePath.endsWith('.js') && filePath.includes('__generated__'),
       parser: 'js',
@@ -177,6 +179,7 @@ Ensure that one such file exists in ${srcDir} or its parents.
     onlyValidate: options.validate,
     // TODO: allow passing in a flag or detect?
     sourceControl: null,
+    persist: options.persist,
   });
   if (!options.validate && !options.watch && options.watchman) {
     // eslint-disable-next-line no-console
@@ -194,7 +197,7 @@ Ensure that one such file exists in ${srcDir} or its parents.
   }
 }
 
-function getRelayFileWriter(baseDir: string) {
+function getRelayFileWriter(baseDir: string, persist: boolean) {
   return ({
     onlyValidate,
     schema,
@@ -218,6 +221,7 @@ function getRelayFileWriter(baseDir: string) {
         inputFieldWhiteListForFlow: [],
         schemaExtensions,
         useHaste: false,
+        persistQuery: persist ? persistQuery : null,
       },
       onlyValidate,
       schema,
