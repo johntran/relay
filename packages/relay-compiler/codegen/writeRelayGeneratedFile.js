@@ -48,13 +48,13 @@ async function writeRelayGeneratedFile(
   generatedNode: GeneratedNode,
   formatModule: FormatModule,
   flowText: string,
-  _persistQuery: ?(text: string) => Promise<string>,
+  persistQuery: ?(text: string) => Promise<string>,
   platform: ?string,
   relayRuntimeModule: string,
   sourceHash: string,
 ): Promise<?GeneratedNode> {
   // Copy to const so Flow can refine.
-  const persistQuery = _persistQuery;
+  const _persistQuery = persistQuery;
   const moduleName = generatedNode.name + '.graphql';
   const platformName = platform ? moduleName + '.' + platform : moduleName;
   const filename = platformName + '.js';
@@ -89,7 +89,7 @@ async function writeRelayGeneratedFile(
       if (flowText) {
         hasher.update(flowText);
       }
-      if (persistQuery) {
+      if (_persistQuery) {
         hasher.update('persisted');
       }
       hash = hasher.digest('hex');
@@ -103,14 +103,14 @@ async function writeRelayGeneratedFile(
       codegenDir.markUpdated(filename);
       return null;
     }
-    if (persistQuery) {
+    if (_persistQuery) {
       switch (generatedNode.kind) {
         case RelayConcreteNode.REQUEST:
           devOnlyProperties.text = generatedNode.text;
           generatedNode = {
             ...generatedNode,
             text: null,
-            id: await persistQuery(nullthrows(generatedNode.text)),
+            id: await _persistQuery(nullthrows(generatedNode.text)),
           };
           break;
         case RelayConcreteNode.BATCH_REQUEST:
@@ -123,7 +123,7 @@ async function writeRelayGeneratedFile(
               generatedNode.requests.map(async request => ({
                 ...request,
                 text: null,
-                id: await persistQuery(nullthrows(request.text)),
+                id: await _persistQuery(nullthrows(request.text)),
               })),
             ),
           };

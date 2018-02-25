@@ -23,7 +23,7 @@ const {
 const RelayJSModuleParser = require('../core/RelayJSModuleParser');
 const RelayFileWriter = require('../codegen/RelayFileWriter');
 const RelayIRTransforms = require('../core/RelayIRTransforms');
-const persistQuery = require('../codegen/persistQuery');
+const {persistQuery} = require('../codegen/persistQuery');
 
 const formatGeneratedModule = require('../codegen/formatGeneratedModule');
 const fs = require('fs');
