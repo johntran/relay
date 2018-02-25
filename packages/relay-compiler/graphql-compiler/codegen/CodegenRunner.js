@@ -78,6 +78,7 @@ class CodegenRunner {
   _reporter: GraphQLReporter;
   _sourceControl: ?SourceControl;
   _persist: boolean;
+  _baseDir: string;
 
   constructor(options: {
     parserConfigs: ParserConfigs,
@@ -86,6 +87,7 @@ class CodegenRunner {
     reporter: GraphQLReporter,
     sourceControl: ?SourceControl,
     persist: boolean,
+    baseDir: string,
   }) {
     this.parsers = {};
     this.parserConfigs = options.parserConfigs;
@@ -94,6 +96,7 @@ class CodegenRunner {
     this._reporter = options.reporter;
     this._sourceControl = options.sourceControl;
     this._persist = options.persist;
+    this._baseDir = options.baseDir;
 
     this.parserWriters = {};
     for (const parser in options.parserConfigs) {
@@ -110,7 +113,26 @@ class CodegenRunner {
     }
   }
 
+  cleanGeneratedGraphqlJS(src: string) {
+    const fastGlob = require('fast-glob');
+    const filesToClean = fastGlob.sync('**/__generated__/**/*.graphql.js', {
+      cwd: src,
+      bashNative: [],
+      onlyFiles: true,
+    });
+
+    filesToClean.forEach(f => {
+      const filePath = path.resolve(src, f);
+      console.log(`deleting ${filePath}`);
+      fs.unlinkSync(filePath);
+    });
+  }
+
   async compileAll(): Promise<CompileResult> {
+    if (this._persist) {
+      this.cleanGeneratedGraphqlJS(this._baseDir);
+    }
+
     // reset the parsers
     this.parsers = {};
     for (const parserName in this.parserConfigs) {
