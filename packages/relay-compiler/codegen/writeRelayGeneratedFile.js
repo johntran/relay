@@ -48,7 +48,7 @@ async function writeRelayGeneratedFile(
   generatedNode: GeneratedNode,
   formatModule: FormatModule,
   flowText: string,
-  persistQuery: ?(text: string) => Promise<string>,
+  persistQuery: ?(nodeName: string, text: string) => Promise<string>,
   platform: ?string,
   relayRuntimeModule: string,
   sourceHash: string,
@@ -110,7 +110,7 @@ async function writeRelayGeneratedFile(
           generatedNode = {
             ...generatedNode,
             text: null,
-            id: await _persistQuery(nullthrows(generatedNode.text)),
+            id: await _persistQuery(generatedNode.name, nullthrows(generatedNode.text)),
           };
           break;
         case RelayConcreteNode.BATCH_REQUEST:
@@ -123,7 +123,7 @@ async function writeRelayGeneratedFile(
               generatedNode.requests.map(async request => ({
                 ...request,
                 text: null,
-                id: await _persistQuery(nullthrows(request.text)),
+                id: await _persistQuery(generatedNode.name, nullthrows(request.text)),
               })),
             ),
           };

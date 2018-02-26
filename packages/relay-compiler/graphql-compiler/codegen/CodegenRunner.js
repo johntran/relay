@@ -78,7 +78,6 @@ class CodegenRunner {
   _reporter: GraphQLReporter;
   _sourceControl: ?SourceControl;
   _persist: boolean;
-  _baseDir: string;
 
   constructor(options: {
     parserConfigs: ParserConfigs,
@@ -87,7 +86,6 @@ class CodegenRunner {
     reporter: GraphQLReporter,
     sourceControl: ?SourceControl,
     persist: boolean,
-    baseDir: string,
   }) {
     this.parsers = {};
     this.parserConfigs = options.parserConfigs;
@@ -96,7 +94,6 @@ class CodegenRunner {
     this._reporter = options.reporter;
     this._sourceControl = options.sourceControl;
     this._persist = options.persist;
-    this._baseDir = options.baseDir;
 
     this.parserWriters = {};
     for (const parser in options.parserConfigs) {
@@ -113,26 +110,7 @@ class CodegenRunner {
     }
   }
 
-  cleanGeneratedGraphqlJS(src: string) {
-    const fastGlob = require('fast-glob');
-    const filesToClean = fastGlob.sync('**/__generated__/**/*.graphql.js', {
-      cwd: src,
-      bashNative: [],
-      onlyFiles: true,
-    });
-
-    filesToClean.forEach(f => {
-      const filePath = path.resolve(src, f);
-      console.log(`deleting ${filePath}`);
-      fs.unlinkSync(filePath);
-    });
-  }
-
   async compileAll(): Promise<CompileResult> {
-    if (this._persist) {
-      this.cleanGeneratedGraphqlJS(this._baseDir);
-    }
-
     // reset the parsers
     this.parsers = {};
     for (const parserName in this.parserConfigs) {
@@ -162,10 +140,25 @@ class CodegenRunner {
   }
 
   persistQueryMap(): void {
-    const queryMapOutputFile = `./queryMap.json`;
+    const queryMapOutputFile = './queryMap.json';
     try {
+      if (fs.existsSync(queryMapOutputFile)) {
+        // queryMap.json already exists, so we update it with the new maps
+        let existingQueryMap = fs.readFileSync(queryMapOutputFile, 'utf8');
+        existingQueryMap = JSON.parse(existingQueryMap);
+
+        for (const nodeName in queryMap) {
+          existingQueryMap[nodeName] = queryMap[nodeName];
+        }
+
+        fs.writeFileSync(queryMapOutputFile, JSON.stringify(existingQueryMap));
+        console.log(`Updated queryMap file at ${queryMapOutputFile}`);
+        return;
+      }
+
+      // new file
       fs.writeFileSync(queryMapOutputFile, JSON.stringify(queryMap));
-      console.log(`Query map written to: ${queryMapOutputFile}`);
+      console.log(`Created queryMap file at ${queryMapOutputFile}`);
     } catch (err) {
       if (err) {
         return console.log(err);
@@ -409,6 +402,10 @@ class CodegenRunner {
             this.parseFileChanges(parserName, files);
           }
           await Promise.all(dependentWriters.map(writer => this.write(writer)));
+
+          if (this._persist) {
+            this.persistQueryMap();
+          }
         } catch (error) {
           this._reporter.reportError('CodegenRunner.watch', error);
         }

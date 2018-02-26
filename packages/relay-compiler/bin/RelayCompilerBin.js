@@ -180,7 +180,6 @@ Ensure that one such file exists in ${srcDir} or its parents.
     // TODO: allow passing in a flag or detect?
     sourceControl: null,
     persist: options.persist,
-    baseDir: srcDir,
   });
   if (!options.validate && !options.watch && options.watchman) {
     // eslint-disable-next-line no-console
