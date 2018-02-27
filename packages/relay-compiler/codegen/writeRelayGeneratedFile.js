@@ -48,10 +48,11 @@ async function writeRelayGeneratedFile(
   generatedNode: GeneratedNode,
   formatModule: FormatModule,
   flowText: string,
-  persistQuery: ?(nodeName: string, text: string) => Promise<string>,
+  persistQuery: ?(text: string) => Promise<string>,
   platform: ?string,
   relayRuntimeModule: string,
   sourceHash: string,
+  queryMapCache: Object,
 ): Promise<?GeneratedNode> {
   // Copy to const so Flow can refine.
   const _persistQuery = persistQuery;
@@ -106,25 +107,44 @@ async function writeRelayGeneratedFile(
     if (_persistQuery) {
       switch (generatedNode.kind) {
         case RelayConcreteNode.REQUEST:
-          devOnlyProperties.text = generatedNode.text;
+          const operationText = generatedNode.text;
+          devOnlyProperties.text = operationText;
+          const queryId = await _persistQuery(nullthrows(operationText));
+          queryMapCache[generatedNode.name] = {
+            id: queryId,
+            operationText,
+          };
           generatedNode = {
             ...generatedNode,
             text: null,
-            id: await _persistQuery(generatedNode.name, nullthrows(generatedNode.text)),
+            id: queryId,
           };
           break;
         case RelayConcreteNode.BATCH_REQUEST:
-          devOnlyProperties.requests = generatedNode.requests.map(request => ({
-            text: request.text,
-          }));
+          devOnlyProperties.requests = generatedNode.requests.map(request => {
+            return {
+              text: request.text,
+            };
+          });
           generatedNode = {
             ...generatedNode,
             requests: await Promise.all(
-              generatedNode.requests.map(async request => ({
-                ...request,
-                text: null,
-                id: await _persistQuery(generatedNode.name, nullthrows(request.text)),
-              })),
+              generatedNode.requests.map(async request => {
+                const requestOperationText = request.text;
+                const queryId = await _persistQuery(
+                  nullthrows(requestOperationText),
+                );
+                queryMapCache[request.name] = {
+                  id: queryId,
+                  requestOperationText,
+                };
+
+                return {
+                  ...request,
+                  text: null,
+                  id: queryId,
+                };
+              }),
             ),
           };
           break;

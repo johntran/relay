@@ -23,7 +23,7 @@ const {
 const RelayJSModuleParser = require('../core/RelayJSModuleParser');
 const RelayFileWriter = require('../codegen/RelayFileWriter');
 const RelayIRTransforms = require('../core/RelayIRTransforms');
-const {persistQuery} = require('../codegen/persistQuery');
+const persistQuery = require('../codegen/persistQuery');
 
 const formatGeneratedModule = require('../codegen/formatGeneratedModule');
 const fs = require('fs');
@@ -179,7 +179,6 @@ Ensure that one such file exists in ${srcDir} or its parents.
     onlyValidate: options.validate,
     // TODO: allow passing in a flag or detect?
     sourceControl: null,
-    persist: options.persist,
   });
   if (!options.validate && !options.watch && options.watchman) {
     // eslint-disable-next-line no-console

@@ -18,8 +18,6 @@ const Profiler = require('../core/GraphQLCompilerProfiler');
 
 const invariant = require('invariant');
 const path = require('path');
-const fs = require('fs');
-const {queryMap} = require('../../codegen/persistQuery');
 
 const {Map: ImmutableMap} = require('immutable');
 
@@ -77,7 +75,6 @@ class CodegenRunner {
   parserWriters: {[parser: string]: Set<string>};
   _reporter: GraphQLReporter;
   _sourceControl: ?SourceControl;
-  _persist: boolean;
 
   constructor(options: {
     parserConfigs: ParserConfigs,
@@ -85,7 +82,6 @@ class CodegenRunner {
     onlyValidate: boolean,
     reporter: GraphQLReporter,
     sourceControl: ?SourceControl,
-    persist: boolean,
   }) {
     this.parsers = {};
     this.parserConfigs = options.parserConfigs;
@@ -93,7 +89,6 @@ class CodegenRunner {
     this.onlyValidate = options.onlyValidate;
     this._reporter = options.reporter;
     this._sourceControl = options.sourceControl;
-    this._persist = options.persist;
 
     this.parserWriters = {};
     for (const parser in options.parserConfigs) {
@@ -130,40 +125,9 @@ class CodegenRunner {
       }
       if (result === 'HAS_CHANGES') {
         hasChanges = true;
-
-        if (this._persist) {
-          this.persistQueryMap();
-        }
       }
     }
     return hasChanges ? 'HAS_CHANGES' : 'NO_CHANGES';
-  }
-
-  persistQueryMap(): void {
-    const queryMapOutputFile = './queryMap.json';
-    try {
-      if (fs.existsSync(queryMapOutputFile)) {
-        // queryMap.json already exists, so we update it with the new maps
-        let existingQueryMap = fs.readFileSync(queryMapOutputFile, 'utf8');
-        existingQueryMap = JSON.parse(existingQueryMap);
-
-        for (const nodeName in queryMap) {
-          existingQueryMap[nodeName] = queryMap[nodeName];
-        }
-
-        fs.writeFileSync(queryMapOutputFile, JSON.stringify(existingQueryMap));
-        console.log(`Updated queryMap file at ${queryMapOutputFile}`);
-        return;
-      }
-
-      // new file
-      fs.writeFileSync(queryMapOutputFile, JSON.stringify(queryMap));
-      console.log(`Created queryMap file at ${queryMapOutputFile}`);
-    } catch (err) {
-      if (err) {
-        return console.log(err);
-      }
-    }
   }
 
   async compile(writerName: string): Promise<CompileResult> {
@@ -402,10 +366,6 @@ class CodegenRunner {
             this.parseFileChanges(parserName, files);
           }
           await Promise.all(dependentWriters.map(writer => this.write(writer)));
-
-          if (this._persist) {
-            this.persistQueryMap();
-          }
         } catch (error) {
           this._reporter.reportError('CodegenRunner.watch', error);
         }

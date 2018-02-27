@@ -19,6 +19,7 @@ const compileRelayArtifacts = require('./compileRelayArtifacts');
 const graphql = require('graphql');
 const invariant = require('invariant');
 const path = require('path');
+const fs = require('fs');
 const md5 = require('../util/md5');
 
 const writeRelayGeneratedFile = require('./writeRelayGeneratedFile');
@@ -82,6 +83,7 @@ class RelayFileWriter implements FileWriterInterface {
   _documents: ImmutableMap<string, DocumentNode>;
   _reporter: Reporter;
   _sourceControl: ?SourceControl;
+  _queryMapCache: Object;
 
   constructor({
     config,
@@ -107,6 +109,7 @@ class RelayFileWriter implements FileWriterInterface {
     this._onlyValidate = onlyValidate;
     this._reporter = reporter;
     this._sourceControl = sourceControl;
+    this._queryMapCache = {};
 
     validateConfig(this._config);
   }
@@ -287,7 +290,12 @@ class RelayFileWriter implements FileWriterInterface {
               md5(graphql.print(getDefinitionMeta(node.name).ast)),
             );
 
-            await writeRelayGeneratedFile(
+            // Init and reset query map for this node
+            // if (this._config.persistQuery) {
+            //   this._queryMapCache[node.name] = {id: '', operationText: node.text};
+            // }
+
+            const generatedNode = await writeRelayGeneratedFile(
               getGeneratedDirectory(node.name),
               node,
               formatModule,
@@ -296,9 +304,18 @@ class RelayFileWriter implements FileWriterInterface {
               this._config.platform,
               relayRuntimeModule,
               sourceHash,
+              this._queryMapCache,
             );
+
+            // if (this._config.persistQuery) {
+            //   this._queryMapCache[node.name].id = generatedNode.id;
+            // }
           }),
         );
+
+        if (this._config.persistQuery) {
+          this.generateQueryMapFile();
+        }
 
         const generateExtraFiles = this._config.generateExtraFiles;
         if (generateExtraFiles) {
@@ -353,6 +370,24 @@ class RelayFileWriter implements FileWriterInterface {
 
       return allOutputDirectories;
     });
+  }
+
+  generateQueryMapFile(): void {
+    const queryMapFilePath = `${this._config.baseDir}/queryMap.json`;
+    try {
+      const queryMapJson = {};
+
+      // Flatten the structure so consumers can key by id
+      for (const nodeName in this._queryMapCache) {
+        const node = this._queryMapCache[nodeName];
+        queryMapJson[node.id] = node.operationText;
+      }
+
+      fs.writeFileSync(queryMapFilePath, JSON.stringify(queryMapJson));
+      console.log(`Written queryMap file to ${queryMapFilePath}`);
+    } catch (err) {
+      console.log(err);
+    }
   }
 }
 
