@@ -290,11 +290,6 @@ class RelayFileWriter implements FileWriterInterface {
               md5(graphql.print(getDefinitionMeta(node.name).ast)),
             );
 
-            // Init and reset query map for this node
-            // if (this._config.persistQuery) {
-            //   this._queryMapCache[node.name] = {id: '', operationText: node.text};
-            // }
-
             const generatedNode = await writeRelayGeneratedFile(
               getGeneratedDirectory(node.name),
               node,
@@ -306,10 +301,6 @@ class RelayFileWriter implements FileWriterInterface {
               sourceHash,
               this._queryMapCache,
             );
-
-            // if (this._config.persistQuery) {
-            //   this._queryMapCache[node.name].id = generatedNode.id;
-            // }
           }),
         );
 
@@ -375,7 +366,12 @@ class RelayFileWriter implements FileWriterInterface {
   generateQueryMapFile(): void {
     const queryMapFilePath = `${this._config.baseDir}/queryMap.json`;
     try {
-      const queryMapJson = {};
+      let queryMapJson = {};
+
+      if (fs.existsSync(queryMapFilePath)) {
+        // queryMap.json already exists, so we use that as a starting point
+        queryMapJson = JSON.parse(fs.readFileSync(queryMapFilePath, 'utf8'));
+      }
 
       // Flatten the structure so consumers can key by id
       for (const nodeName in this._queryMapCache) {
