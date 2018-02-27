@@ -373,10 +373,8 @@ class RelayFileWriter implements FileWriterInterface {
         queryMapJson = JSON.parse(fs.readFileSync(queryMapFilePath, 'utf8'));
       }
 
-      // Flatten the structure so consumers can key by id
       for (const nodeName in this._queryMapCache) {
-        const node = this._queryMapCache[nodeName];
-        queryMapJson[node.id] = node.operationText;
+        queryMapJson[nodeName] = this._queryMapCache[nodeName];
       }
 
       fs.writeFileSync(queryMapFilePath, JSON.stringify(queryMapJson));
