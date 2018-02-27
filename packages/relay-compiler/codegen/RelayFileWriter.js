@@ -290,7 +290,7 @@ class RelayFileWriter implements FileWriterInterface {
               md5(graphql.print(getDefinitionMeta(node.name).ast)),
             );
 
-            const generatedNode = await writeRelayGeneratedFile(
+            await writeRelayGeneratedFile(
               getGeneratedDirectory(node.name),
               node,
               formatModule,
