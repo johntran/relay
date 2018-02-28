@@ -83,7 +83,6 @@ class RelayFileWriter implements FileWriterInterface {
   _documents: ImmutableMap<string, DocumentNode>;
   _reporter: Reporter;
   _sourceControl: ?SourceControl;
-  _queryMapCache: Object;
 
   constructor({
     config,
@@ -109,7 +108,6 @@ class RelayFileWriter implements FileWriterInterface {
     this._onlyValidate = onlyValidate;
     this._reporter = reporter;
     this._sourceControl = sourceControl;
-    this._queryMapCache = {};
 
     validateConfig(this._config);
   }
@@ -303,10 +301,6 @@ class RelayFileWriter implements FileWriterInterface {
           }),
         );
 
-        // if (this._config.persistQuery) {
-        //   this.generateQueryMapFile();
-        // }
-
         const generateExtraFiles = this._config.generateExtraFiles;
         if (generateExtraFiles) {
           Profiler.run('RelayFileWriter:generateExtraFiles', () => {
@@ -335,6 +329,11 @@ class RelayFileWriter implements FileWriterInterface {
         allOutputDirectories.forEach(dir => {
           dir.deleteExtraFiles();
         });
+
+        if (this._config.persistQuery) {
+          this.writeCompleteQueryMap(allOutputDirectories);
+        }
+
         if (this._sourceControl && !this._onlyValidate) {
           await CodegenDirectory.sourceControlAddRemove(
             this._sourceControl,
@@ -362,22 +361,32 @@ class RelayFileWriter implements FileWriterInterface {
     });
   }
 
-  generateQueryMapFile(): void {
+  /**
+   * Find all *.queryMap.json and write it into a single file.
+   * @param allOutputDirectories
+   */
+  writeCompleteQueryMap(
+    allOutputDirectories: Map<string, CodegenDirectory>,
+  ): void {
     const queryMapFilePath = `${this._config.baseDir}/queryMap.json`;
     try {
       let queryMapJson = {};
-
-      if (fs.existsSync(queryMapFilePath)) {
-        // queryMap.json already exists, so we use that as a starting point
-        queryMapJson = JSON.parse(fs.readFileSync(queryMapFilePath, 'utf8'));
-      }
-
-      for (const nodeName in this._queryMapCache) {
-        queryMapJson[nodeName] = this._queryMapCache[nodeName];
-      }
+      allOutputDirectories.forEach(d => {
+        fs.readdirSync(d._dir).forEach(f => {
+          if (f.endsWith('queryMap.json')) {
+            const singleQueryMap = JSON.parse(
+              fs.readFileSync(path.join(d._dir, f), 'utf8'),
+            );
+            queryMapJson = {
+              ...queryMapJson,
+              ...singleQueryMap,
+            };
+          }
+        });
+      });
 
       fs.writeFileSync(queryMapFilePath, JSON.stringify(queryMapJson));
-      console.log(`Written queryMap file to ${queryMapFilePath}`);
+      console.log(`Written complete queryMap file to ${queryMapFilePath}`);
     } catch (err) {
       console.log(err);
     }
