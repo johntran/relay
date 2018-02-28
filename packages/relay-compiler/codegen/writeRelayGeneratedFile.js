@@ -13,7 +13,8 @@
 
 // TODO T21875029 ../../relay-runtime/util/RelayConcreteNode
 const RelayConcreteNode = require('RelayConcreteNode');
-
+const fs = require('fs');
+const path = require('path');
 const crypto = require('crypto');
 const dedupeJSONStringify = require('dedupeJSONStringify');
 const deepMergeAssignments = require('./deepMergeAssignments');
@@ -52,13 +53,13 @@ async function writeRelayGeneratedFile(
   platform: ?string,
   relayRuntimeModule: string,
   sourceHash: string,
-  queryMapCache: Object,
 ): Promise<?GeneratedNode> {
   // Copy to const so Flow can refine.
   const _persistQuery = persistQuery;
   const moduleName = generatedNode.name + '.graphql';
   const platformName = platform ? moduleName + '.' + platform : moduleName;
   const filename = platformName + '.js';
+  const queryMapFilename = `${generatedNode.name}.queryMap.json`;
   const flowTypeName =
     generatedNode.kind === RelayConcreteNode.FRAGMENT
       ? 'ConcreteFragment'
@@ -77,6 +78,8 @@ async function writeRelayGeneratedFile(
   }
 
   let hash = null;
+  let queryMap = null;
+
   if (
     generatedNode.kind === RelayConcreteNode.REQUEST ||
     generatedNode.kind === RelayConcreteNode.BATCH_REQUEST
@@ -98,10 +101,18 @@ async function writeRelayGeneratedFile(
     });
     if (hash === oldHash) {
       codegenDir.markUnchanged(filename);
+
+      if (_persistQuery) {
+        codegenDir.markUnchanged(queryMapFilename);
+      }
       return null;
     }
     if (codegenDir.onlyValidate) {
       codegenDir.markUpdated(filename);
+
+      if (_persistQuery) {
+        codegenDir.markUpdated(queryMapFilename);
+      }
       return null;
     }
     if (_persistQuery) {
@@ -110,10 +121,8 @@ async function writeRelayGeneratedFile(
           const operationText = generatedNode.text;
           devOnlyProperties.text = operationText;
           const queryId = await _persistQuery(nullthrows(operationText));
-          queryMapCache[generatedNode.name] = {
-            id: queryId,
-            operationText,
-          };
+          queryMap = {};
+          queryMap[queryId] = operationText;
           generatedNode = {
             ...generatedNode,
             text: null,
@@ -134,11 +143,8 @@ async function writeRelayGeneratedFile(
                 const queryId = await _persistQuery(
                   nullthrows(requestOperationText),
                 );
-                queryMapCache[request.name] = {
-                  id: queryId,
-                  requestOperationText,
-                };
-
+                queryMap = {};
+                queryMap[queryId] = requestOperationText;
                 return {
                   ...request,
                   text: null,
@@ -158,7 +164,6 @@ async function writeRelayGeneratedFile(
   }
 
   const devOnlyAssignments = deepMergeAssignments('node', devOnlyProperties);
-
   const moduleText = formatModule({
     moduleName,
     documentType: flowTypeName,
@@ -172,6 +177,10 @@ async function writeRelayGeneratedFile(
   });
 
   codegenDir.writeFile(filename, moduleText);
+  if (_persistQuery && queryMap) {
+    codegenDir.writeFile(queryMapFilename, JSON.stringify(queryMap));
+  }
+
   return generatedNode;
 }
 

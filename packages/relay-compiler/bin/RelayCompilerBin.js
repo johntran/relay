@@ -167,7 +167,8 @@ Ensure that one such file exists in ${srcDir} or its parents.
     js: {
       getWriter: getRelayFileWriter(srcDir, options.persist),
       isGeneratedFile: (filePath: string) =>
-        filePath.endsWith('.js') && filePath.includes('__generated__'),
+        (filePath.endsWith('.js') || filePath.endsWith('.queryMap.json')) &&
+        filePath.includes('__generated__'),
       parser: 'js',
       baseParsers: ['graphql'],
     },
@@ -259,6 +260,7 @@ ${error.stack}
 // Ensure that a watchman "root" file exists in the given directory
 // or a parent so that it can be watched
 const WATCHMAN_ROOT_FILES = ['.git', '.hg', '.watchmanconfig'];
+
 function hasWatchmanRootFile(testPath) {
   while (path.dirname(testPath) !== testPath) {
     if (

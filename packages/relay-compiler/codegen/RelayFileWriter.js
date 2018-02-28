@@ -299,14 +299,13 @@ class RelayFileWriter implements FileWriterInterface {
               this._config.platform,
               relayRuntimeModule,
               sourceHash,
-              this._queryMapCache,
             );
           }),
         );
 
-        if (this._config.persistQuery) {
-          this.generateQueryMapFile();
-        }
+        // if (this._config.persistQuery) {
+        //   this.generateQueryMapFile();
+        // }
 
         const generateExtraFiles = this._config.generateExtraFiles;
         if (generateExtraFiles) {
