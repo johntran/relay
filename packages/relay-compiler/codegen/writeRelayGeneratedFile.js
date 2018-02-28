@@ -130,11 +130,9 @@ async function writeRelayGeneratedFile(
           };
           break;
         case RelayConcreteNode.BATCH_REQUEST:
-          devOnlyProperties.requests = generatedNode.requests.map(request => {
-            return {
-              text: request.text,
-            };
-          });
+          devOnlyProperties.requests = generatedNode.requests.map(request => ({
+            text: request.text,
+          }));
           generatedNode = {
             ...generatedNode,
             requests: await Promise.all(
@@ -164,6 +162,7 @@ async function writeRelayGeneratedFile(
   }
 
   const devOnlyAssignments = deepMergeAssignments('node', devOnlyProperties);
+
   const moduleText = formatModule({
     moduleName,
     documentType: flowTypeName,
