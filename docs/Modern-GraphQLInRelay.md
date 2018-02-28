@@ -142,7 +142,20 @@ Will cause a generated file to appear in `./__generated__/MyComponent.graphql`,
 with both runtime artifacts (which help to read and write from the Relay Store)
 and [Flow types](https://flow.org/) to help you write type-safe code.
 
-The Relay Compiler is responsible for generating code as part of a build step which, at runtime, can be used statically. By building the query ahead of time, the client's JS runtime is not responsible for generating a query string, and fields that are duplicated in the query can be merged during the build step, to improve parsing efficiency. If you have the ability to persist queries to your server, the compiler's code generation process provides a convenient time to convert a query or mutation's text into a unique identifier, which can greatly reduce the upload bytes required in some applications.
+The Relay Compiler is responsible for generating code as part of a build step which, at runtime, can be used statically. By building the query ahead of time, the client's JS runtime is not responsible for generating a query string, and fields that are duplicated in the query can be merged during the build step, to improve parsing efficiency. 
+
+### Persisting queries
+The Relay Compiler can persist your queries with the `--persist` flag from the command line:
+
+```js
+"scripts": {
+  "relay": "relay-compiler --src ./src --schema ./schema.graphql --persist"
+}
+```
+
+The `--persist` flag will create a matching `./__generated__/MyComponent.queryMap.json` containing the query id and the operation text in the same directory.
+The Relay Compiler aggregates all the generated `*.queryMap.json` into a single complete query map file at `./src/queryMap.json`. You can then use this complete
+json file in your server side to map query ids to operation text.
 
 ### Set up relay-compiler
 
@@ -220,6 +233,11 @@ This would produce three generated files, and two `__generated__` directories:
 * `src/Components/__generated__/DictionaryComponent_definition.graphql.js`
 * `src/Queries/__generated__/DictionaryQuery.graphql.js`
 
+If you use the `--persist` flag, then an extra query map json file will be generated:
+
+* `src/Queries/__generated__/DictionaryQuery.queryMap.json`
+
+Only one query map json is generated because only concrete queries can be persisted. Fragments are not persisted. 
 
 ### Importing generated definitions
 
