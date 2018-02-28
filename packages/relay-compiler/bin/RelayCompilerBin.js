@@ -338,6 +338,10 @@ const argv = yargs
       type: 'boolean',
       default: false,
     },
+    persist: {
+      describe: 'Persist queries to srcdir/queryMap.json',
+      type: 'boolean',
+    },
   })
   .help().argv;
 
