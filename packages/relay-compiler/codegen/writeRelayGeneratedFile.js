@@ -13,8 +13,6 @@
 
 // TODO T21875029 ../../relay-runtime/util/RelayConcreteNode
 const RelayConcreteNode = require('RelayConcreteNode');
-const fs = require('fs');
-const path = require('path');
 const crypto = require('crypto');
 const dedupeJSONStringify = require('dedupeJSONStringify');
 const deepMergeAssignments = require('./deepMergeAssignments');
