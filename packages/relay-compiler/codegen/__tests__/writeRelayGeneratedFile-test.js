@@ -48,7 +48,9 @@ describe('writeRelayGeneratedFile', () => {
       expect(codeGenDir.writeFile.mock.calls.length).toEqual(2);
       expect(codeGenDir.writeFile.mock.calls[0][0]).toBe('summaryBar_refetch_Query.graphql.js');
       expect(codeGenDir.writeFile.mock.calls[0][1]).toBe('mockFormatModuleOuput');
-      expect(codeGenDir.writeFile).lastCalledWith('summaryBar_refetch_Query.queryMap.json', `{\"${expectedQueryId}\":\"${node.text}\"}`);
+      expect(codeGenDir.writeFile).lastCalledWith('summaryBar_refetch_Query.queryMap.json', `{
+  \"${expectedQueryId}\": \"${node.text}\"
+}`);
     });
 
     test('should persist batch request', async () => {
@@ -80,7 +82,9 @@ describe('writeRelayGeneratedFile', () => {
       expect(codeGenDir.writeFile.mock.calls.length).toEqual(2);
       expect(codeGenDir.writeFile.mock.calls[0][0]).toBe('summaryBar_refetch_Query.graphql.js');
       expect(codeGenDir.writeFile.mock.calls[0][1]).toBe('mockFormatModuleOuput');
-      expect(codeGenDir.writeFile).lastCalledWith('summaryBar_refetch_Query.queryMap.json', `{\"${expectedQueryId}\":\"${node.requests[0].text}\"}`);
+      expect(codeGenDir.writeFile).lastCalledWith('summaryBar_refetch_Query.queryMap.json', `{
+  \"${expectedQueryId}\": \"${node.requests[0].text}\"
+}`);
     });
 
     test('should not persist fragment', async () => {

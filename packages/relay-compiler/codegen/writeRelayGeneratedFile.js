@@ -175,7 +175,7 @@ async function writeRelayGeneratedFile(
 
   codegenDir.writeFile(filename, moduleText);
   if (_persistQuery && queryMap) {
-    codegenDir.writeFile(queryMapFilename, JSON.stringify(queryMap));
+    codegenDir.writeFile(queryMapFilename, JSON.stringify(queryMap, null, 2));
   }
 
   return generatedNode;
