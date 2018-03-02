@@ -145,6 +145,9 @@ and [Flow types](https://flow.org/) to help you write type-safe code.
 The Relay Compiler is responsible for generating code as part of a build step which, at runtime, can be used statically. By building the query ahead of time, the client's JS runtime is not responsible for generating a query string, and fields that are duplicated in the query can be merged during the build step, to improve parsing efficiency. 
 
 ### Persisting queries
+The Relay Compiler can convert a query or mutation's text into a unique identifier during compilation. This can greatly reduce the upload bytes required in some applications.
+Using a unique identifier in place of your query or mutation also allows you to whitelist operations that are allowed on your server which improves security.
+
 The Relay Compiler can persist your queries with the `--persist` flag:
 
 ```js
