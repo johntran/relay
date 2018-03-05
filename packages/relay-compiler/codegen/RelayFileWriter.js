@@ -362,18 +362,18 @@ class RelayFileWriter implements FileWriterInterface {
   }
 
   /**
-   * Find all *.queryMap.json and write it into a single file.
+   * Find all *.graphql.json and write it into a single file.
    * @param allOutputDirectories
    */
   writeCompleteQueryMap(
     allOutputDirectories: Map<string, CodegenDirectory>,
   ): void {
-    const queryMapFilePath = `${this._config.baseDir}/queryMap.json`;
+    const queryMapFilePath = `${this._config.baseDir}/queryMap.graphql.json`;
     try {
       let queryMapJson = {};
       allOutputDirectories.forEach(d => {
         fs.readdirSync(d._dir).forEach(f => {
-          if (f.endsWith('queryMap.json')) {
+          if (f.endsWith('.graphql.json')) {
             const singleQueryMap = JSON.parse(
               fs.readFileSync(path.join(d._dir, f), 'utf8'),
             );

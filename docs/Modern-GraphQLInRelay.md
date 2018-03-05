@@ -153,8 +153,8 @@ The Relay Compiler can persist your queries with the `--persist` flag:
 }
 ```
 
-This will create a matching `./__generated__/MyComponent.queryMap.json` containing the query id and the operation text of the query in the same directory.
-The Relay Compiler aggregates all the generated `*.queryMap.json` into a single complete query map file at `./src/queryMap.json`. You can then use this complete
+This will create a matching `./__generated__/MyComponent.graphql.json` containing the query id and the operation text of the query in the same directory.
+The Relay Compiler aggregates all the generated `*.graphql.json` into a single complete query map file at `./src/queryMap.graphql.json`. You can then use this complete
 json file in your server side to map query ids to operation text.
 
 ### Set up relay-compiler
@@ -235,7 +235,7 @@ This would produce three generated files, and two `__generated__` directories:
 
 If you use `--persist`, then an extra query map json file will also be generated:
 
-* `src/Queries/__generated__/DictionaryQuery.queryMap.json`
+* `src/Queries/__generated__/DictionaryQuery.graphql.json`
 
 Only one query map json is generated in this instance because only concrete queries can be persisted. Fragments are not persisted. 
 

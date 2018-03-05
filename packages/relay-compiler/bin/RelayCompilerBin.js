@@ -167,7 +167,7 @@ Ensure that one such file exists in ${srcDir} or its parents.
     js: {
       getWriter: getRelayFileWriter(srcDir, options.persist),
       isGeneratedFile: (filePath: string) =>
-        (filePath.endsWith('.js') || filePath.endsWith('.queryMap.json')) &&
+        (filePath.endsWith('.js') || filePath.endsWith('.graphql.json')) &&
         filePath.includes('__generated__'),
       parser: 'js',
       baseParsers: ['graphql'],
@@ -339,7 +339,7 @@ const argv = yargs
       default: false,
     },
     persist: {
-      describe: 'Persist queries to srcdir/queryMap.json',
+      describe: 'Persist queries to srcdir/queryMap.graphql.json',
       type: 'boolean',
     },
   })
