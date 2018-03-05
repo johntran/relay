@@ -387,7 +387,7 @@ class RelayFileWriter implements FileWriterInterface {
 
       fs.writeFileSync(queryMapFilePath, JSON.stringify(queryMapJson, null, 2));
       this._reporter.reportMessage(
-        `Written complete queryMap file to ${queryMapFilePath}`,
+        `Complete queryMap written to ${queryMapFilePath}`,
       );
     } catch (err) {
       this._reporter.reportError('RelayFileWriter.writeCompleteQueryMap', err);
