@@ -160,6 +160,8 @@ This will create a matching `./__generated__/MyComponent.graphql.json` containin
 The Relay Compiler aggregates all the generated `*.graphql.json` into a single complete query map file at `./src/queryMap.graphql.json`. You can then use this complete
 json file in your server side to map query ids to operation text.
 
+Fore more details, refer to the [Persisted Queries section](./persisted-queries.html).
+
 ### Set up relay-compiler
 
 See our relay-compiler section in our [Installation and Setup guide](./installation-and-setup.html#set-up-relay-compiler).
