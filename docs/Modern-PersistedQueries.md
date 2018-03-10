@@ -5,7 +5,7 @@ title: Persisted Queries
 
 The relay compiler supports persisted queries which is useful because:
 
-* the client graphql query becomes just an md5 hash which is usually shorter than the real 
+* the client operation text becomes just an md5 hash which is usually shorter than the real 
 query string. This saves upload bytes from the client to the server.
 
 * the server can now whitelist queries which improves security by restricting the operations 
@@ -24,53 +24,53 @@ In your `npm` script in `package.json`, run the relay compiler using the `--pers
 
 The `--persist` flag does 3 things:
 
-1. It converts all query and mutation operation texts to unique ids using md5 hashing.
+1. It converts all query and mutation operation texts to md5 hashes.
 
-For example without `--persist`, a generated `ConcreteRequest` might look like below:
+    For example without `--persist`, a generated `ConcreteRequest` might look like below:
 
-```js
-const node/*: ConcreteRequest*/ = (function(){
-//... excluded for brevity
-return {
-  "kind": "Request",
-  "operationKind": "query",
-  "name": "TodoItemRefetchQuery",
-  "id": null, // NOTE: id is null
-  "text": "query TodoItemRefetchQuery(\n  $itemID: ID!\n) {\n  node(id: $itemID) {\n    ...TodoItem_item_2FOrhs\n  }\n}\n\nfragment TodoItem_item_2FOrhs on Todo {\n    text\n    isComplete\n}\n",
-  //... excluded for brevity
-};
-})();
-```
-
-With `--persist` this becomes:
-
-```js
-const node/*: ConcreteRequest*/ = (function(){
-//... excluded for brevity
-return {
-  "kind": "Request",
-  "operationKind": "query",
-  "name": "TodoItemRefetchQuery",
-  "id": "3be4abb81fa595e25eb725b2c6a87508", // NOTE: id is now an md5 hash of the query text
-  "text": null, // NOTE: text is null now
-  //... excluded for brevity
-};
-})();
-```
+    ```js
+    const node/*: ConcreteRequest*/ = (function(){
+    //... excluded for brevity
+    return {
+      "kind": "Request",
+      "operationKind": "query",
+      "name": "TodoItemRefetchQuery",
+      "id": null, // NOTE: id is null
+      "text": "query TodoItemRefetchQuery(\n  $itemID: ID!\n) {\n  node(id: $itemID) {\n    ...TodoItem_item_2FOrhs\n  }\n}\n\nfragment TodoItem_item_2FOrhs on Todo {\n    text\n    isComplete\n}\n",
+      //... excluded for brevity
+    };
+    })();
+    ```
+    
+    With `--persist` this becomes:
+    
+    ```js
+    const node/*: ConcreteRequest*/ = (function(){
+    //... excluded for brevity
+    return {
+      "kind": "Request",
+      "operationKind": "query",
+      "name": "TodoItemRefetchQuery",
+      "id": "3be4abb81fa595e25eb725b2c6a87508", // NOTE: id is now an md5 hash of the query text
+      "text": null, // NOTE: text is null now
+      //... excluded for brevity
+    };
+    })();
+    ```
 
 2. It generates a matching `.graphql.json` file containing a map of the id and the operation text in the same `__generated__` 
 directory as the `.graphql.js` file. In the example above, the `__generated__` directory will have these files:
 
-* `./__generated__/TodoItemRefetchQuery.graphql.js`
-* `./__generated__/TodoItemRefetchQuery.graphql.json`
-
-The `.graphql.json` file looks something like this:
-
-```json
-{
-  "3be4abb81fa595e25eb725b2c6a87508": "query TodoItemRefetchQuery(\n  $itemID: ID!\n) {\n  node(id: $itemID) {\n    ...TodoItem_item_2FOrhs\n  }\n}\n\nfragment TodoItem_item_2FOrhs on Todo {\n    text\n    isComplete\n}\n"
-}
-```
+    * `./__generated__/TodoItemRefetchQuery.graphql.js`
+    * `./__generated__/TodoItemRefetchQuery.graphql.json`
+    
+    The `.graphql.json` file looks something like this:
+    
+    ```json
+    {
+      "3be4abb81fa595e25eb725b2c6a87508": "query TodoItemRefetchQuery(\n  $itemID: ID!\n) {\n  node(id: $itemID) {\n    ...TodoItem_item_2FOrhs\n  }\n}\n\nfragment TodoItem_item_2FOrhs on Todo {\n    text\n    isComplete\n}\n"
+    }
+    ```
 
 3. It also generates a complete query map file at `[your_src_dir]/queryMap.graphql.json`. This file contains all the query ids 
 and their operation texts.
@@ -104,7 +104,7 @@ For universal applications where the client and server code are in one project, 
 the query map file in a common location accessible to both the client and the server.
 
 For applications where the client and server projects are separate, you can solve this by having an additional npm run script
-to push the query map file to a location accessible by your server:
+to push the query map to a location accessible by your server:
 
 ```js
 "scripts": {
@@ -145,5 +145,5 @@ It is possible to continuously generate the query map files by using the `--pers
 This only makes sense for universal applications i.e. if your client and server code are in a single project 
 and you run them both together on localhost during development. Furthermore, in order for the server to pick up changes 
 to the `queryMap.graphql.json`, you'll need to have server side hot-reloading set up. The details on how to set this up
-is out of the scope of this document.  
+is out of the scope of this document.
 
