@@ -62,6 +62,7 @@ export type WriterConfig = {
   inputFieldWhiteListForFlow: Array<string>,
   outputDir?: string,
   persistQuery?: (text: string) => Promise<string>,
+  persistOutput?: string,
   platform?: string,
   relayRuntimeModule?: string,
   schemaExtensions: Array<string>,
@@ -368,7 +369,9 @@ class RelayFileWriter implements FileWriterInterface {
   writeCompleteQueryMap(
     allOutputDirectories: Map<string, CodegenDirectory>,
   ): void {
-    const queryMapFilePath = `${this._config.baseDir}/queryMap.graphql.json`;
+    const queryMapFilePath =
+      this._config.persistOutput ||
+      `${this._config.baseDir}/queryMap.graphql.json`;
     try {
       let queryMapJson = {};
       allOutputDirectories.forEach(d => {
