@@ -112,7 +112,7 @@ On the server, you'll need to map the query id in the POST body to the real oper
 For universal applications where the client and server code are in one project, this is not an issue since you can place 
 the query map file in a common location accessible to both the client and the server.
 
-For applications where the client and server projects are separate, you can solve this by having an additional npm run script
+For applications where the client and server projects are separate, one option is to have an additional npm run script
 to push the query map to a location accessible by your server:
 
 ```js
@@ -128,7 +128,7 @@ Some possibilities of what you can do in `./pushQueries.js`:
 
 * save the query maps to a database
 
-It is also possible to push your query maps to the server at runtime, without the server knowing the query ids at the start.
+A second more complex option is to push your query maps to the server at runtime, without the server knowing the query ids at the start.
 The client optimistically sends a query id to the server, which does not have the query map. The server then in turn requests
 for the full query text from the client so it can cache the query map for subsequent requests. This is a more complex approach
 requiring the client and server to interact to exchange the query maps.
