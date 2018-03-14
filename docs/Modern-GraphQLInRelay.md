@@ -146,7 +146,15 @@ The Relay Compiler is responsible for generating code as part of a build step wh
 
 ### Persisting queries
 The Relay Compiler can convert a query or mutation's text into a unique identifier during compilation. This can greatly reduce the upload bytes required in some applications.
-Using a unique identifier in place of your query or mutation also allows you to whitelist operations that are allowed on your server which improves security.
+Using a unique identifier in place of the query text means you have a well-known list of queries that the client can send instead of any
+arbitrary query. This technique of allowing only known queries to be run on the server is called query whitelisting. Whitelisting prevents malicious attacks
+such as:
+
+* an internal dos attack where the query depth is high and exploits circular relationships in the schema
+* a full schema introspection which might not be desirable
+* a harmful pagination query that fetches a million objects
+
+For more information on whitelisting and securing your graphql api from attacks, please refer to this [excellent blog by Max Stoiber](https://dev-blog.apollodata.com/securing-your-graphql-api-from-malicious-queries-16130a324a6b).
 
 The Relay Compiler can persist your queries with the `--persist` flag:
 
@@ -157,10 +165,10 @@ The Relay Compiler can persist your queries with the `--persist` flag:
 ```
 
 This will create a matching `./__generated__/MyComponent.graphql.json` containing the query id and the operation text of the query in the same directory.
-The Relay Compiler aggregates all the generated `*.graphql.json` into a single complete query map file at `./src/queryMap.graphql.json`. You can then use this complete
+The Relay Compiler aggregates all the generated `*.graphql.json` files into a single complete query map file at `./src/queryMap.graphql.json`. You can then use this complete
 json file in your server side to map query ids to operation text.
 
-Fore more details, refer to the [Persisted Queries section](./persisted-queries.html).
+For more details, refer to the [Persisted Queries section](./persisted-queries.html).
 
 ### Set up relay-compiler
 
@@ -242,7 +250,7 @@ If you use `--persist`, then an extra query map json file will also be generated
 
 * `src/Queries/__generated__/DictionaryQuery.graphql.json`
 
-Only one query map json is generated in this instance because only concrete queries can be persisted. Fragments are not persisted. 
+Only one query map json file is generated in this instance because only concrete queries can be persisted. Fragments are not persisted.
 
 ### Importing generated definitions
 
