@@ -73,7 +73,16 @@ directory as the `.graphql.js` file. In the example above, the `__generated__` d
     ```
 
 3. It also generates a complete query map file at `[your_src_dir]/queryMap.graphql.json`. This file contains all the query ids 
-and their operation texts.
+and their operation texts. You can specify a custom file path for this file by using the `--persist-output` option:
+
+```js
+"scripts": {
+  "relay": "relay-compiler --src ./src --schema ./schema.graphql --persist --persist-output ./src/queryMaps/queryMap.desktop.graphql.json"
+}
+```
+
+The example above writes the complete query map file to `./src/queryMaps/queryMap.desktop.graphql.json`. You need to ensure all the directories
+leading to the `graphql.json` file exist. Also note that the file extension has to be `.json`.
 
 ### Network layer changes
 You'll need to modify your network layer fetch implementation to pass a queryId parameter in the POST body instead of a query parameter:
@@ -119,6 +128,10 @@ Some possibilities of what you can do in `./pushQueries.js`:
 
 * save the query maps to a database
 
+It is also possible to push your query maps to the server at runtime, without the server knowing the query ids at the start.
+The client optimistically sends a query id to the server, which does not have the query map. The server then in turn requests
+for the full query text from the client so it can cache the query map for subsequent requests. This is a more complex approach
+requiring the client and server to interact to exchange the query maps.
 
 ### Simple server example
 Once your server has access to the query map, you can perform the mapping. The solution varies depending on the server and
