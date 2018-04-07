@@ -13,6 +13,8 @@
 const babel = require('gulp-babel');
 const babelOptions = require('./scripts/getBabelOptions')({
   moduleMap: {
+    '@babel/generator': '@babel/generator',
+    '@babel/types': '@babel/types',
     'babel-core': 'babel-core',
     'babel-generator': 'babel-generator',
     'babel-generator/lib/printer': 'babel-generator/lib/printer',
@@ -33,7 +35,7 @@ const babelOptions = require('./scripts/getBabelOptions')({
     'babel-types': 'babel-types',
     // TODO(T25740028) once we're fully on babylon 7, we can revert this to just
     // babylon
-    babylon7: 'babylon',
+    'metro-babylon7': 'babylon',
     chalk: 'chalk',
     child_process: 'child_process',
     crypto: 'crypto',

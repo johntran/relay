@@ -61,6 +61,7 @@ export type WriterConfig = {
   platform?: string,
   relayRuntimeModule?: string,
   schemaExtensions: Array<string>,
+  noFutureProofEnums: boolean,
   useHaste: boolean,
   // Haste style module that exports flow types for GraphQL enums.
   // TODO(T22422153) support non-haste environments
@@ -278,6 +279,7 @@ class RelayFileWriter implements FileWriterInterface {
               inputFieldWhiteList: this._config.inputFieldWhiteListForFlow,
               relayRuntimeModule,
               useHaste: this._config.useHaste,
+              noFutureProofEnums: this._config.noFutureProofEnums,
             });
 
             const sourceHash = Profiler.run('hashGraphQL', () =>

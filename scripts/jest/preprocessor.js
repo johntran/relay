@@ -26,7 +26,7 @@ const babelOptions = getBabelOptions({
   autoImport: true,
   moduleMap: {
     // TODO(T25740028) once we're fully on babylon 7, we can remove this hack.
-    babylon7: 'babylon',
+    'metro-babylon7': 'babylon',
     immutable: 'immutable',
     React: 'react',
     reactComponentExpect: 'react-dom/lib/reactComponentExpect',
@@ -61,6 +61,8 @@ module.exports = {
   getCacheKey: createCacheKeyFunction([
     __filename,
     testSchemaPath,
+    // We cannot have trailing commas in this file for node < 8
+    // prettier-ignore
     path.join(
       path.dirname(require.resolve('babel-preset-fbjs')),
       'package.json'

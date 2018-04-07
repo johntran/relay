@@ -40,7 +40,7 @@ describe('ReactRelayRefetchContainer', () => {
       this.relay = {environment, variables};
       this.state = {props: null};
     }
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
       // eslint-disable-next-line no-shadow
       const {environment, variables} = nextProps;
       if (
@@ -360,8 +360,10 @@ describe('ReactRelayRefetchContainer', () => {
     environment.subscribe.mockClear();
 
     // Update the variables in context
-    const newVariables = {id: '4'};
-    instance.getInstance().setContext(environment, newVariables);
+    // Context object should be mutated (for compat with gDSFP).
+    const context = instance.getInstance().getChildContext();
+    context.relay.variables = {id: '4'};
+    instance.getInstance().setProps({});
 
     // New data & variables are passed to component
     expect(render.mock.calls.length).toBe(1);
@@ -866,7 +868,11 @@ describe('ReactRelayRefetchContainer', () => {
         cond: true,
         id: '842472',
       };
-      instance.getInstance().setContext(environment, updateVariables);
+      // Update the variables in context.
+      // Context object should be mutated (for compat with gDSFP).
+      const context = instance.getInstance().getChildContext();
+      context.relay.variables = updateVariables;
+      instance.getInstance().setProps({});
 
       expect(relayContext.environment).toBe(environment);
       expect(relayContext.variables).toEqual(updateVariables);

@@ -11,12 +11,13 @@
 
 'use strict';
 
-const PatchedBabelGenerator = require('./PatchedBabelGenerator');
+const babelGenerator = require('@babel/generator').default;
 const RelayMaskTransform = require('RelayMaskTransform');
 const RelayRelayDirectiveTransform = require('RelayRelayDirectiveTransform');
 
+const invariant = require('invariant');
 const nullthrows = require('nullthrows');
-const t = require('babel-types');
+const t = require('@babel/types');
 
 const {
   anyTypeAlias,
@@ -34,7 +35,7 @@ const {
   transformScalarType,
   transformInputType,
 } = require('./RelayFlowTypeTransformers');
-const {GraphQLNonNull} = require('graphql');
+const {GraphQLInputObjectType, GraphQLNonNull} = require('graphql');
 const {
   FlattenTransform,
   IRVisitor,
@@ -55,18 +56,22 @@ type Options = {|
   +existingFragmentNames: Set<string>,
   +inputFieldWhiteList: $ReadOnlyArray<string>,
   +relayRuntimeModule: string,
+  +noFutureProofEnums: boolean,
 |};
 
 export type State = {|
   ...Options,
   +generatedFragments: Set<string>,
+  +generatedInputObjectTypes: {
+    [name: string]: GraphQLInputObjectType | 'pending',
+  },
   +usedEnums: {[name: string]: GraphQLEnumType},
   +usedFragments: Set<string>,
 |};
 
 function generate(node: Root | Fragment, options: Options): string {
   const ast = IRVisitor.visit(node, createVisitor(options));
-  return PatchedBabelGenerator.generate(ast);
+  return babelGenerator(ast).code;
 }
 
 type Selection = {
@@ -185,7 +190,10 @@ function selectionsToBabel(selections, state: State, refTypeName?: string) {
     types.map(props => {
       if (refTypeName) {
         props.push(
-          readOnlyObjectTypeProperty('$refType', t.identifier(refTypeName)),
+          readOnlyObjectTypeProperty(
+            '$refType',
+            t.genericTypeAnnotation(t.identifier(refTypeName)),
+          ),
         );
       }
       return exactObjectTypeAnnotation(props);
@@ -230,17 +238,20 @@ function createVisitor(options: Options) {
     enumsHasteModule: options.enumsHasteModule,
     existingFragmentNames: options.existingFragmentNames,
     generatedFragments: new Set(),
+    generatedInputObjectTypes: {},
     inputFieldWhiteList: options.inputFieldWhiteList,
     relayRuntimeModule: options.relayRuntimeModule,
     usedEnums: {},
     usedFragments: new Set(),
     useHaste: options.useHaste,
+    noFutureProofEnums: options.noFutureProofEnums,
   };
 
   return {
     leave: {
       Root(node) {
         const inputVariablesType = generateInputVariablesType(node, state);
+        const inputObjectTypes = generateInputObjectTypes(state);
         const responseType = exportType(
           `${node.name}Response`,
           selectionsToBabel(node.selections, state),
@@ -248,6 +259,7 @@ function createVisitor(options: Options) {
         return t.program([
           ...getFragmentImports(state),
           ...getEnumDefinitions(state),
+          ...inputObjectTypes,
           inputVariablesType,
           responseType,
         ]);
@@ -274,9 +286,11 @@ function createVisitor(options: Options) {
         });
         state.generatedFragments.add(node.name);
         const refTypeName = getRefTypeName(node.name);
-        const refType = t.expressionStatement(
-          t.identifier(
-            `declare export opaque type ${refTypeName}: FragmentReference`,
+        const refType = t.declareExportDeclaration(
+          t.declareOpaqueType(
+            t.identifier(refTypeName),
+            null,
+            t.genericTypeAnnotation(t.identifier('FragmentReference')),
           ),
         );
         const baseType = selectionsToBabel(selections, state, refTypeName);
@@ -362,6 +376,18 @@ function flattenArray<T>(arrayOfArrays: Array<Array<T>>): Array<T> {
   return result;
 }
 
+function generateInputObjectTypes(state: State) {
+  return Object.keys(state.generatedInputObjectTypes).map(typeIdentifier => {
+    const inputObjectType = state.generatedInputObjectTypes[typeIdentifier];
+    invariant(
+      typeof inputObjectType !== 'string',
+      'RelayCompilerFlowGenerator: Expected input object type to have been' +
+        ' defined before calling `generateInputObjectTypes`',
+    );
+    return exportType(typeIdentifier, inputObjectType);
+  });
+}
+
 function generateInputVariablesType(node: Root, state: State) {
   return exportType(
     `${node.name}Variables`,
@@ -392,7 +418,9 @@ function groupRefs(props): Array<Selection> {
   });
   if (refs.length > 0) {
     const value = intersectionTypeAnnotation(
-      refs.map(ref => t.identifier(getRefTypeName(ref))),
+      refs.map(ref =>
+        t.genericTypeAnnotation(t.identifier(getRefTypeName(ref))),
+      ),
     );
     result.push({
       key: '$fragmentRefs',
@@ -423,7 +451,11 @@ function getFragmentImports(state: State) {
   return imports;
 }
 
-function getEnumDefinitions({enumsHasteModule, usedEnums}: State) {
+function getEnumDefinitions({
+  enumsHasteModule,
+  usedEnums,
+  noFutureProofEnums,
+}: State) {
   const enumNames = Object.keys(usedEnums).sort();
   if (enumNames.length === 0) {
     return [];
@@ -434,7 +466,9 @@ function getEnumDefinitions({enumsHasteModule, usedEnums}: State) {
   return enumNames.map(name => {
     const values = usedEnums[name].getValues().map(({value}) => value);
     values.sort();
-    values.push('%future added value');
+    if (!noFutureProofEnums) {
+      values.push('%future added value');
+    }
     return exportType(
       name,
       t.unionTypeAnnotation(

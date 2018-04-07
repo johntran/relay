@@ -11,7 +11,7 @@
 
 'use strict';
 
-const t = require('babel-types');
+const t = require('@babel/types');
 
 const {readOnlyArrayOfType} = require('RelayFlowBabelFactories');
 const {
@@ -32,6 +32,10 @@ export type ScalarTypeMapping = {
 };
 
 import type {State} from './RelayFlowGenerator';
+
+function getInputObjectTypeIdentifier(type: GraphQLInputObjectType): string {
+  return type.name;
+}
 
 function transformScalarType(
   type: GraphQLType,
@@ -72,7 +76,8 @@ function transformNonNullableScalarType(
 }
 
 function transformGraphQLScalarType(type: GraphQLScalarType, state: State) {
-  switch (state.customScalars[type.name] || type.name) {
+  const customType = state.customScalars[type.name];
+  switch (customType || type.name) {
     case 'ID':
     case 'String':
     case 'Url':
@@ -83,7 +88,9 @@ function transformGraphQLScalarType(type: GraphQLScalarType, state: State) {
     case 'Boolean':
       return t.booleanTypeAnnotation();
     default:
-      return t.anyTypeAnnotation();
+      return customType == null
+        ? t.anyTypeAnnotation()
+        : t.genericTypeAnnotation(t.identifier(customType));
   }
 }
 
@@ -108,6 +115,11 @@ function transformNonNullableInputType(type: GraphQLInputType, state: State) {
   } else if (type instanceof GraphQLEnumType) {
     return transformGraphQLEnumType(type, state);
   } else if (type instanceof GraphQLInputObjectType) {
+    const typeIdentifier = getInputObjectTypeIdentifier(type);
+    if (state.generatedInputObjectTypes[typeIdentifier]) {
+      return t.genericTypeAnnotation(t.identifier(typeIdentifier));
+    }
+    state.generatedInputObjectTypes[typeIdentifier] = 'pending';
     const fields = type.getFields();
     const props = Object.keys(fields)
       .map(key => fields[key])
@@ -122,7 +134,10 @@ function transformNonNullableInputType(type: GraphQLInputType, state: State) {
         }
         return property;
       });
-    return t.objectTypeAnnotation(props);
+    state.generatedInputObjectTypes[typeIdentifier] = t.objectTypeAnnotation(
+      props,
+    );
+    return t.genericTypeAnnotation(t.identifier(typeIdentifier));
   } else {
     throw new Error(`Could not convert from GraphQL type ${type.toString()}`);
   }

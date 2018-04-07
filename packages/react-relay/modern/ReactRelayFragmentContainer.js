@@ -15,15 +15,14 @@ const RelayPropTypes = require('../classic/container/RelayPropTypes');
 
 const areEqual = require('areEqual');
 const buildReactRelayContainer = require('./buildReactRelayContainer');
-const invariant = require('invariant');
-const isRelayContext = require('../classic/environment/isRelayContext');
 const isScalarAndEqual = require('isScalarAndEqual');
-const polyfill = require('react-lifecycles-compat');
+const warning = require('warning');
 
 const {
   getComponentName,
   getReactComponent,
 } = require('../classic/container/RelayContainerUtils');
+const {assertRelayContext} = require('../classic/environment/RelayContext');
 const {profileContainer} = require('./ReactRelayContainerProfiler');
 const {RelayProfiler} = require('RelayRuntime');
 
@@ -55,17 +54,20 @@ type ContainerState = {
  * updates.
  */
 function createContainerWithFragments<
-  TConfig,
-  TClass: React.ComponentType<TConfig>,
+  Props: {},
+  TComponent: React.ComponentType<Props>,
 >(
-  Component: TClass,
+  Component: TComponent,
   fragments: FragmentMap,
-): React.ComponentType<TConfig & {componentRef?: any}> {
+): React.ComponentType<
+  $RelayProps<React.ElementConfig<TComponent>, RelayProp>,
+> {
   const ComponentClass = getReactComponent(Component);
   const componentName = getComponentName(Component);
   const containerName = `Relay(${componentName})`;
 
   class Container extends React.Component<ContainerProps, ContainerState> {
+    static displayName = containerName;
     static contextTypes = {
       relay: RelayPropTypes.Relay,
     };
@@ -225,16 +227,22 @@ function createContainerWithFragments<
       const profiler = RelayProfiler.profile(
         'ReactRelayFragmentContainer.handleFragmentDataUpdate',
       );
-      this.setState(
-        state => ({
-          data: state.resolver.resolve(),
-          relayProp: {
-            isLoading: state.resolver.isLoading(),
-            environment: state.relayProp.environment,
-          },
-        }),
-        profiler.stop,
-      );
+      const resolverFromThisUpdate = this.state.resolver;
+      this.setState(updatedState => {
+        // If this event belongs to the current data source, update.
+        // Otherwise we should ignore it.
+        if (resolverFromThisUpdate === updatedState.resolver) {
+          return {
+            data: updatedState.resolver.resolve(),
+            relayProp: {
+              isLoading: updatedState.resolver.isLoading(),
+              environment: updatedState.relayProp.environment,
+            },
+          };
+        }
+
+        return null;
+      }, profiler.stop);
     };
 
     _subscribeToNewResolver() {
@@ -259,7 +267,7 @@ function createContainerWithFragments<
             {...this.props}
             {...this.state.data}
             // TODO: Remove the string ref fallback.
-            ref={this.props.componentRef || 'component'}
+            ref={this.props.componentRef || this._legacyRef}
             relay={this.state.relayProp}
           />
         );
@@ -272,24 +280,33 @@ function createContainerWithFragments<
         });
       }
     }
+
+    _legacyRef = __DEV__
+      ? component => {
+          this.refs = {
+            __INTERNAL__component: component,
+          };
+          // Getter syntax is causing problems on www so falling back to
+          // Object.defineProperty.
+          // $FlowFixMe
+          Object.defineProperty(this.refs, 'component', {
+            get() {
+              warning(
+                false,
+                'RelayContainer: Do not use `container.refs.component` for ' +
+                  'RelayCompat or RelayModern containers. Instead pass ' +
+                  '`containerRef={ref}` to `%s`.',
+                componentName,
+              );
+              return component;
+            },
+          });
+        }
+      : 'component';
   }
   profileContainer(Container, 'ReactRelayFragmentContainer');
-  Container.displayName = containerName;
-
-  // Make static getDerivedStateFromProps work with older React versions:
-  polyfill(Container);
 
   return Container;
-}
-
-function assertRelayContext(relay: mixed): RelayContext {
-  invariant(
-    isRelayContext(relay),
-    'ReactRelayFragmentContainer: Expected `context.relay` to be an object ' +
-      'conforming to the `RelayContext` interface, got `%s`.',
-    relay,
-  );
-  return (relay: any);
 }
 
 /**

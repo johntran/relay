@@ -27,7 +27,7 @@ import type {
 
 export type ConnectionMetadata = {
   path: ?Array<string>,
-  direction: ?('forward' | 'backward'),
+  direction: ?('forward' | 'backward' | 'bidirectional'),
   cursor: ?string,
   count: ?string,
 };
@@ -492,7 +492,7 @@ function buildConnectionEdge(
  * @internal
  *
  * Adds the source edges to the target edges, skipping edges with
- * duplicate cursors or node ids.
+ * duplicate node ids.
  */
 function mergeEdges(
   sourceEdges: Array<?RecordProxy>,

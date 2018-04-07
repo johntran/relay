@@ -23,7 +23,6 @@ const {
 const RelayJSModuleParser = require('../core/RelayJSModuleParser');
 const RelayFileWriter = require('../codegen/RelayFileWriter');
 const RelayIRTransforms = require('../core/RelayIRTransforms');
-const persistQuery = require('../codegen/persistQuery');
 
 const formatGeneratedModule = require('../codegen/formatGeneratedModule');
 const fs = require('fs');
@@ -95,7 +94,7 @@ async function run(options: {
   watch?: ?boolean,
   validate: boolean,
   quiet: boolean,
-  persist: boolean,
+  noFutureProofEnums: boolean,
 }) {
   const schemaPath = path.resolve(process.cwd(), options.schema);
   if (!fs.existsSync(schemaPath)) {
@@ -134,6 +133,13 @@ Ensure that one such file exists in ${srcDir} or its parents.
   const useWatchman = options.watchman && (await WatchmanClient.isAvailable());
 
   const schema = getSchema(schemaPath);
+
+  const graphqlSearchOptions = {
+    extensions: ['graphql'],
+    include: options.include,
+    exclude: [path.relative(srcDir, schemaPath)].concat(options.exclude),
+  };
+
   const parserConfigs = {
     js: {
       baseDir: srcDir,
@@ -148,24 +154,16 @@ Ensure that one such file exists in ${srcDir} or its parents.
       getParser: DotGraphQLParser.getParser,
       getSchema: () => schema,
       watchmanExpression: useWatchman
-        ? buildWatchExpression({
-            extensions: ['graphql'],
-            include: options.include,
-            exclude: options.exclude,
-          })
+        ? buildWatchExpression(graphqlSearchOptions)
         : null,
       filepaths: useWatchman
         ? null
-        : getFilepathsFromGlob(srcDir, {
-            extensions: ['graphql'],
-            include: options.include,
-            exclude: options.exclude,
-          }),
+        : getFilepathsFromGlob(srcDir, graphqlSearchOptions),
     },
   };
   const writerConfigs = {
     js: {
-      getWriter: getRelayFileWriter(srcDir, options.persist),
+      getWriter: getRelayFileWriter(srcDir, options.noFutureProofEnums),
       isGeneratedFile: (filePath: string) =>
         filePath.endsWith('.js') && filePath.includes('__generated__'),
       parser: 'js',
@@ -179,7 +177,6 @@ Ensure that one such file exists in ${srcDir} or its parents.
     onlyValidate: options.validate,
     // TODO: allow passing in a flag or detect?
     sourceControl: null,
-    persist: options.persist,
   });
   if (!options.validate && !options.watch && options.watchman) {
     // eslint-disable-next-line no-console
@@ -197,7 +194,7 @@ Ensure that one such file exists in ${srcDir} or its parents.
   }
 }
 
-function getRelayFileWriter(baseDir: string, persist: boolean) {
+function getRelayFileWriter(baseDir: string, noFutureProofEnums: boolean) {
   return ({
     onlyValidate,
     schema,
@@ -221,7 +218,7 @@ function getRelayFileWriter(baseDir: string, persist: boolean) {
         inputFieldWhiteListForFlow: [],
         schemaExtensions,
         useHaste: false,
-        persistQuery: persist ? persistQuery : null,
+        noFutureProofEnums,
       },
       onlyValidate,
       schema,
@@ -336,6 +333,14 @@ const argv = yargs
         'Looks for pending changes and exits with non-zero code instead of ' +
         'writing to disk',
       type: 'boolean',
+      default: false,
+    },
+    noFutureProofEnums: {
+      describe:
+        'This option controls whether or not a catch-all entry is added to enum type definitions ' +
+        'for values that may be added in the future. Enabling this means you will have to update ' +
+        'your application whenever the GraphQL server schema adds new enum values to prevent it ' +
+        'from breaking.',
       default: false,
     },
   })
