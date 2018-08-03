@@ -23,11 +23,11 @@ import type {CodegenDirectory} from 'graphql-compiler';
 import type {GeneratedNode} from 'relay-runtime';
 
 async function writeRelayGeneratedFile(
-   codegenDir: CodegenDirectory,
+  codegenDir: CodegenDirectory,
   generatedNode: GeneratedNode,
   formatModule: FormatModule,
   typeText: string,
-  _persistQuery: ?(text: string) => Promise<string>,
+  persistQuery: ?(text: string) => Promise<string>,
   platform: ?string,
   relayRuntimeModule: string,
   sourceHash: string,

@@ -10,6 +10,7 @@ describe('writeRelayGeneratedFile', () => {
     const platform = null;
     const relayRuntimeModule = 'relay-runtime';
     const sourceHash = 'test-hash';
+    const extension = 'js'
 
     beforeEach(() => {
       codeGenDir = {
@@ -39,6 +40,7 @@ describe('writeRelayGeneratedFile', () => {
         platform,
         relayRuntimeModule,
         sourceHash,
+        extension
       );
 
       expect(codeGenDir.markUnchanged).not.toBeCalled();
@@ -73,6 +75,7 @@ describe('writeRelayGeneratedFile', () => {
         platform,
         relayRuntimeModule,
         sourceHash,
+        extension
       );
 
       expect(codeGenDir.markUnchanged).not.toBeCalled();
@@ -102,6 +105,7 @@ describe('writeRelayGeneratedFile', () => {
         platform,
         relayRuntimeModule,
         sourceHash,
+        extension
       );
 
       expect(codeGenDir.markUnchanged).not.toBeCalled();
@@ -131,6 +135,7 @@ describe('writeRelayGeneratedFile', () => {
         platform,
         relayRuntimeModule,
         sourceHash,
+        extension
       );
 
       expect(codeGenDir.markUnchanged.mock.calls.length).toEqual(2);
@@ -159,6 +164,7 @@ describe('writeRelayGeneratedFile', () => {
         platform,
         relayRuntimeModule,
         sourceHash,
+        extension
       );
 
       expect(codeGenDir.markUnchanged).not.toBeCalled();

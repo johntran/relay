@@ -267,9 +267,12 @@ Ensure that one such file exists in ${srcDir} or its parents.
         languagePlugin,
         options.noFutureProofEnums,
         artifactDirectory,
+        persist,
+        persistOutput,
       ),
       isGeneratedFile: (filePath: string) =>
-        (filePath.endsWith('.graphql.' + outputExtension) ||filePath.endsWith('.queryMap.json'))  &&
+        (filePath.endsWith('.graphql.' + outputExtension) ||
+          filePath.endsWith('.queryMap.json')) &&
         filePath.includes(generatedDirectoryName),
       parser: sourceParserName,
       baseParsers: ['graphql'],
@@ -301,11 +304,11 @@ Ensure that one such file exists in ${srcDir} or its parents.
 
 function getRelayFileWriter(
   baseDir: string,
-  persist: boolean,
-  persistOutput: string,
   languagePlugin: PluginInterface,
   noFutureProofEnums: boolean,
   outputDir?: ?string,
+  persist: boolean,
+  persistOutput: string,
 ) {
   return ({
     onlyValidate,
