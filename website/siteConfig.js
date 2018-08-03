@@ -38,6 +38,18 @@ const users = [
     infoLink: 'https://friday.work/',
     pinned: false,
   },
+  {
+    caption: '1stdibs',
+    image: '/relay/img/logos/1stdibs.png',
+    infoLink: 'https://www.1stdibs.com/',
+    pinned: false,
+  },
+  {
+    caption: 'Parabol',
+    image: '/relay/img/logos/parabol.png',
+    infoLink: 'https://www.parabol.co/',
+    pinned: false,
+  },
 ];
 
 const siteConfig = {

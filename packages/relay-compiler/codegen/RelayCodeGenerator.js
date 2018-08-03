@@ -4,7 +4,6 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @providesModule RelayCodeGenerator
  * @flow
  * @format
  */
@@ -12,14 +11,12 @@
 'use strict';
 
 const invariant = require('invariant');
-// TODO T21875029 ../../relay-runtime/util/stableCopy
-const stableCopy = require('stableCopy');
 
-const {getStorageKey} = require('RelayRuntime');
 const {GraphQLList} = require('graphql');
 const {IRVisitor, SchemaUtils} = require('graphql-compiler');
+const {getStorageKey, stableCopy} = require('relay-runtime');
 
-// TODO T21875029 ../../relay-runtime/util/RelayConcreteNode
+import type {Batch, Fragment} from 'graphql-compiler';
 import type {
   ConcreteArgument,
   ConcreteArgumentDefinition,
@@ -29,8 +26,7 @@ import type {
   ConcreteSelection,
   ConcreteScalarField,
   RequestNode,
-} from 'RelayConcreteNode';
-import type {Batch, Fragment} from 'graphql-compiler';
+} from 'relay-runtime';
 const {getRawType, isAbstractType, getNullableType} = SchemaUtils;
 
 declare function generate(node: Batch): RequestNode;
@@ -272,15 +268,15 @@ const RelayCodeGenVisitor = {
     },
 
     Argument(node, key, parent, ancestors): ?ConcreteArgument {
-      invariant(
-        ['Variable', 'Literal'].indexOf(node.value.kind) >= 0,
-        'RelayCodeGenerator: Complex argument values (Lists or ' +
-          'InputObjects with nested variables) are not supported, argument ' +
-          '`%s` had value `%s`. Source: %s.',
-        node.name,
-        JSON.stringify(node.value, null, 2),
-        getErrorMessage(ancestors[0]),
-      );
+      if (['Variable', 'Literal'].indexOf(node.value.kind) < 0) {
+        const valueString = JSON.stringify(node.value, null, 2);
+        throw new Error(
+          'RelayCodeGenerator: Complex argument values (Lists or ' +
+            'InputObjects with nested variables) are not supported, argument ' +
+            `\`${node.name}\` had value \`${valueString}\`. ` +
+            `Source: ${getErrorMessage(ancestors[0])}.`,
+        );
+      }
       return node.value.value !== null ? node.value : null;
     },
   },

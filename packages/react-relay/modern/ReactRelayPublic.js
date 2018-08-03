@@ -4,7 +4,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
 
@@ -14,7 +14,7 @@ const ReactRelayFragmentContainer = require('./ReactRelayFragmentContainer');
 const ReactRelayPaginationContainer = require('./ReactRelayPaginationContainer');
 const ReactRelayQueryRenderer = require('./ReactRelayQueryRenderer');
 const ReactRelayRefetchContainer = require('./ReactRelayRefetchContainer');
-const RelayRuntime = require('RelayRuntime');
+const RelayRuntime = require('relay-runtime');
 
 export type {
   RelayPaginationProp,
@@ -36,7 +36,7 @@ export type {
   Selector,
   Snapshot,
   Variables,
-} from 'RelayRuntime';
+} from 'relay-runtime';
 
 /**
  * The public interface to React Relay.
@@ -47,6 +47,7 @@ module.exports = {
   MutationTypes: RelayRuntime.MutationTypes,
   RangeOperations: RelayRuntime.RangeOperations,
 
+  applyOptimisticMutation: RelayRuntime.applyOptimisticMutation,
   commitLocalUpdate: RelayRuntime.commitLocalUpdate,
   commitMutation: RelayRuntime.commitMutation,
   createFragmentContainer: ReactRelayFragmentContainer.createContainer,
