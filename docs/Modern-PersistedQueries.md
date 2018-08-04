@@ -144,7 +144,7 @@ perform the matching using the `matchQueryMiddleware` from [relay-compiler-plus]
 
 ```js
 import Express from 'express';
-import expressGraphl from 'express-graphql';
+import expressGraphql from 'express-graphql';
 import {matchQueryMiddleware} from 'relay-compiler-plus';
 import queryMapJson from './complete.queryMap.json';
 
