@@ -10,7 +10,7 @@ describe('writeRelayGeneratedFile', () => {
     const platform = null;
     const relayRuntimeModule = 'relay-runtime';
     const sourceHash = 'test-hash';
-    const extension = 'js'
+    const extension = 'js';
 
     beforeEach(() => {
       codeGenDir = {
