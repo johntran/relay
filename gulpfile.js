@@ -12,28 +12,25 @@
 
 const babel = require('gulp-babel');
 const babelOptions = require('./scripts/getBabelOptions')({
+  ast: false,
   moduleMap: {
+    '@babel/generator': '@babel/generator',
+    '@babel/parser': '@babel/parser',
+    '@babel/types': '@babel/types',
     'babel-core': 'babel-core',
     'babel-generator': 'babel-generator',
     'babel-generator/lib/printer': 'babel-generator/lib/printer',
     'babel-polyfill': 'babel-polyfill',
-    'babel-runtime/helpers/asyncToGenerator':
-      'babel-runtime/helpers/asyncToGenerator',
-    'babel-runtime/helpers/classCallCheck':
-      'babel-runtime/helpers/classCallCheck',
-    'babel-runtime/helpers/defineProperty':
-      'babel-runtime/helpers/defineProperty',
+    'babel-runtime/helpers/asyncToGenerator': 'babel-runtime/helpers/asyncToGenerator',
+    'babel-runtime/helpers/classCallCheck': 'babel-runtime/helpers/classCallCheck',
+    'babel-runtime/helpers/defineProperty': 'babel-runtime/helpers/defineProperty',
     'babel-runtime/helpers/extends': 'babel-runtime/helpers/extends',
     'babel-runtime/helpers/inherits': 'babel-runtime/helpers/inherits',
-    'babel-runtime/helpers/possibleConstructorReturn':
-      'babel-runtime/helpers/possibleConstructorReturn',
-    'babel-runtime/helpers/toConsumableArray':
-      'babel-runtime/helpers/toConsumableArray',
+    'babel-runtime/helpers/objectWithoutProperties': 'babel-runtime/helpers/objectWithoutProperties',
+    'babel-runtime/helpers/possibleConstructorReturn': 'babel-runtime/helpers/possibleConstructorReturn',
+    'babel-runtime/helpers/toConsumableArray': 'babel-runtime/helpers/toConsumableArray',
     'babel-traverse': 'babel-traverse',
     'babel-types': 'babel-types',
-    // TODO(T25740028) once we're fully on babylon 7, we can revert this to just
-    // babylon
-    babylon7: 'babylon',
     chalk: 'chalk',
     child_process: 'child_process',
     crypto: 'crypto',
@@ -41,7 +38,7 @@ const babelOptions = require('./scripts/getBabelOptions')({
     'fb-watchman': 'fb-watchman',
     fs: 'fs',
     graphql: 'graphql',
-    'graphql-compiler': './GraphQLCompilerPublic',
+    'graphql-compiler': 'graphql-compiler',
     immutable: 'immutable',
     iterall: 'iterall',
     net: 'net',
@@ -55,6 +52,7 @@ const babelOptions = require('./scripts/getBabelOptions')({
     ReactDOM: 'react-dom',
     ReactNative: 'react-native',
     RelayRuntime: 'relay-runtime',
+    'relay-runtime': 'relay-runtime',
     signedsource: 'signedsource',
     util: 'util',
     yargs: 'yargs',
@@ -67,6 +65,7 @@ const babelOptions = require('./scripts/getBabelOptions')({
     'transform-async-to-generator',
     'transform-es2015-modules-commonjs',
   ],
+  sourceType: 'script',
 });
 const del = require('del');
 const derequire = require('gulp-derequire');
@@ -218,9 +217,25 @@ const builds = [
     ],
   },
   {
+    package: 'graphql-compiler',
+    exports: {
+      index: 'GraphQLCompilerPublic.js',
+    },
+    bundles: [
+      {
+        entry: 'GraphQLCompilerPublic.js',
+        output: 'graphql-compiler',
+        libraryName: 'GraphQLCompiler',
+        libraryTarget: 'commonjs2',
+        target: 'node',
+        noMinify: true, // Note: uglify can't yet handle modern JS
+      },
+    ],
+  },
+  {
     package: 'relay-runtime',
     exports: {
-      index: 'RelayRuntime.js',
+      index: 'index.js',
     },
     bundles: [
       {
@@ -258,9 +273,6 @@ gulp.task('modules', function() {
       gulp
         .src([
           '*' + PACKAGES + '/' + build.package + '/**/*.js',
-          '*' + PACKAGES + '/react-relay/classic/tools/*.js',
-          '*' + PACKAGES + '/react-relay/classic/util/*.js',
-          '*' + PACKAGES + '/relay-runtime/util/*.js',
           '!' + PACKAGES + '/**/__tests__/**/*.js',
           '!' + PACKAGES + '/**/__mocks__/**/*.js',
         ])
@@ -299,7 +311,7 @@ gulp.task('exports', ['copy-files', 'modules'], function() {
       fs.writeFileSync(
         path.join(DIST, build.package, exportName + '.js'),
         PRODUCTION_HEADER +
-          `\nmodule.exports = require('./lib/${build.exports[exportName]}');`
+          `\nmodule.exports = require('./lib/${build.exports[exportName]}');\n`
       )
     )
   );

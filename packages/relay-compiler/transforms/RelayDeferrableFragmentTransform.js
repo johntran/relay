@@ -4,7 +4,6 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @providesModule RelayDeferrableFragmentTransform
  * @flow
  * @format
  */
@@ -20,7 +19,6 @@ const {
   isInputType,
   GraphQLInterfaceType,
   GraphQLList,
-  GraphQLInputType,
 } = require('graphql');
 const {IRTransformer, IRVisitor} = require('graphql-compiler');
 
@@ -34,6 +32,7 @@ import type {
   LocalArgumentDefinition,
   Root,
 } from 'graphql-compiler';
+import type {GraphQLInputType} from 'graphql';
 
 type SpreadUse = {|
   spread: FragmentSpread,
@@ -287,9 +286,11 @@ function getDeferrableSpreadUses(
           context.getFragment(spreadUse.spread.name),
         );
         for (const nestedSpreadUse of nestedSpreadUses) {
+          const separator =
+            spreadUse.path === '' || nestedSpreadUse.path === '' ? '' : '.';
           deferrableSpreadUses.push({
             spread: nestedSpreadUse.spread,
-            path: spreadUse.path + '.' + nestedSpreadUse.path,
+            path: spreadUse.path + separator + nestedSpreadUse.path,
           });
         }
       }

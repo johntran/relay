@@ -4,41 +4,36 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @providesModule RelayModernEnvironment
  * @flow
  * @format
  */
 
 'use strict';
 
-const RelayCore = require('RelayCore');
-const RelayDataLoader = require('RelayDataLoader');
-const RelayDefaultHandlerProvider = require('RelayDefaultHandlerProvider');
-const RelayInMemoryRecordSource = require('RelayInMemoryRecordSource');
-const RelayPublishQueue = require('RelayPublishQueue');
+const RelayCore = require('./RelayCore');
+const RelayDefaultHandlerProvider = require('../handlers/RelayDefaultHandlerProvider');
+const RelayPublishQueue = require('./RelayPublishQueue');
 
-const deferrableFragmentKey = require('deferrableFragmentKey');
+const deferrableFragmentKey = require('./deferrableFragmentKey');
 const invariant = require('invariant');
-const normalizePayload = require('normalizePayload');
-const normalizeRelayPayload = require('normalizeRelayPayload');
+const normalizePayload = require('./normalizePayload');
+const normalizeRelayPayload = require('./normalizeRelayPayload');
 const warning = require('warning');
 
-const {getOperationVariables} = require('RelayConcreteVariables');
-const {createOperationSelector} = require('RelayModernOperationSelector');
+const {getOperationVariables} = require('./RelayConcreteVariables');
+const {createOperationSelector} = require('./RelayModernOperationSelector');
 
-import type {CacheConfig, Disposable} from '../util/RelayRuntimeTypes';
-import type {HandlerProvider} from 'RelayDefaultHandlerProvider';
+import type {HandlerProvider} from '../handlers/RelayDefaultHandlerProvider';
 import type {
   ExecutePayload,
   Network,
   PayloadData,
   PayloadError,
   UploadableMap,
-} from 'RelayNetworkTypes';
-import type RelayObservable from 'RelayObservable';
+} from '../network/RelayNetworkTypes';
+import type RelayObservable from '../network/RelayObservable';
 import type {
   Environment,
-  MissingFieldHandler,
   OperationSelector,
   OptimisticUpdate,
   Selector,
@@ -47,7 +42,8 @@ import type {
   Store,
   StoreUpdater,
   UnstableEnvironmentCore,
-} from 'RelayStoreTypes';
+} from '../store/RelayStoreTypes';
+import type {CacheConfig, Disposable} from '../util/RelayRuntimeTypes';
 
 export type EnvironmentConfig = {
   configName?: string,
@@ -81,7 +77,9 @@ class RelayModernEnvironment implements Environment {
     const _global =
       typeof global !== 'undefined'
         ? global
-        : typeof window !== 'undefined' ? window : undefined;
+        : typeof window !== 'undefined'
+          ? window
+          : undefined;
     const devToolsHook = _global && _global.__RELAY_DEVTOOLS_HOOK__;
     if (devToolsHook) {
       devToolsHook.registerEnvironment(this);
@@ -450,24 +448,6 @@ class RelayModernEnvironment implements Environment {
       updater,
       cacheConfig: {force: true},
     }).subscribeLegacy({onNext, onError, onCompleted});
-  }
-
-  checkSelectorAndUpdateStore(
-    selector: Selector,
-    handlers: Array<MissingFieldHandler>,
-  ): boolean {
-    const target = new RelayInMemoryRecordSource();
-    const result = RelayDataLoader.check(
-      this._store.getSource(),
-      target,
-      selector,
-      handlers,
-    );
-    if (target.size() > 0) {
-      this._publishQueue.commitSource(target);
-      this._publishQueue.run();
-    }
-    return result;
   }
 }
 

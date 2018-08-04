@@ -12,7 +12,6 @@
 
 const React = require('React');
 const ReactRelayRefetchContainer = require('../../modern/ReactRelayRefetchContainer');
-const RelayPropTypes = require('../../classic/container/RelayPropTypes');
 
 const {buildCompatContainer} = require('../ReactRelayCompatContainerBuilder');
 
@@ -22,7 +21,7 @@ import type {
   RelayRefetchProp,
 } from '../../modern/ReactRelayTypes';
 import type {RelayCompatContainer} from './RelayCompatTypes';
-import type {GraphQLTaggedNode} from 'RelayRuntime';
+import type {GraphQLTaggedNode} from 'relay-runtime';
 
 /**
  * Wrap the basic `createContainer()` function with logic to adapt to the
@@ -36,9 +35,9 @@ function createContainer<Props: {}, TComponent: React.ComponentType<Props>>(
   fragmentSpec: GraphQLTaggedNode | GeneratedNodeMap,
   taggedNode: GraphQLTaggedNode,
 ): RelayCompatContainer<
-  $RelayProps<React.ElementConfig<TComponent>, RelayRefetchProp>,
+  $RelayProps<React$ElementConfig<TComponent>, RelayRefetchProp>,
 > {
-  const Container = buildCompatContainer(
+  return buildCompatContainer(
     Component,
     (fragmentSpec: any),
     (ComponentClass, fragments) => {
@@ -48,11 +47,8 @@ function createContainer<Props: {}, TComponent: React.ComponentType<Props>>(
         taggedNode,
       );
     },
+    /* provides child context */ true,
   );
-  (Container: any).childContextTypes = {
-    relay: RelayPropTypes.Relay,
-  };
-  return Container;
 }
 
 module.exports = {createContainer};

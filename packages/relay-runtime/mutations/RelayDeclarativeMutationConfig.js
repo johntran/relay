@@ -4,23 +4,22 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @providesModule RelayDeclarativeMutationConfig
  * @flow
  * @format
  */
 
 'use strict';
 
-const RelayConnectionHandler = require('RelayConnectionHandler');
+const RelayConnectionHandler = require('../handlers/connection/RelayConnectionHandler');
 
 const warning = require('warning');
 
-import type {DataID, Variables} from '../util/RelayRuntimeTypes';
-import type {RequestNode} from 'RelayConcreteNode';
 import type {
   RecordSourceSelectorProxy,
   SelectorStoreUpdater,
-} from 'RelayStoreTypes';
+} from '../store/RelayStoreTypes';
+import type {RequestNode} from '../util/RelayConcreteNode';
+import type {DataID, Variables} from '../util/RelayRuntimeTypes';
 import type {SelectorData} from 'react-relay/classic/environment/RelayCombinedEnvironmentTypes';
 import type {RelayConcreteNode} from 'react-relay/classic/query/RelayQL';
 
