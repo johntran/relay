@@ -170,7 +170,7 @@ function compileAll({
  */
 function writeCompleteQueryMap({
   allOutputDirectories,
-  config,
+  config: writerConfig,
   reporter,
 }: {|
   allOutputDirectories: Map<string, CodegenDirectory>,
@@ -178,7 +178,8 @@ function writeCompleteQueryMap({
   reporter: Reporter,
 |}): void {
   const queryMapFilePath =
-    config.persistOutput || `${config.baseDir}/complete.queryMap.json`;
+    writerConfig.persistOutput ||
+    `${writerConfig.baseDir}/complete.queryMap.json`;
   try {
     let queryMapJson = {};
     allOutputDirectories.forEach(d => {
@@ -399,8 +400,12 @@ function writeAll({
           dir.deleteExtraFiles();
         });
 
-        if (config.persistQuery) {
-          writeCompleteQueryMap({allOutputDirectories, config, reporter});
+        if (writerConfig.persistQuery) {
+          writeCompleteQueryMap({
+            allOutputDirectories,
+            config: writerConfig,
+            reporter,
+          });
         }
 
         if (sourceControl && !onlyValidate) {

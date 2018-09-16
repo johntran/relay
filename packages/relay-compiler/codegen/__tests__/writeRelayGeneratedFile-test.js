@@ -8,7 +8,6 @@ describe('writeRelayGeneratedFile', () => {
     const formatModule = () => 'mockFormatModuleOuput';
     const flowTypes = '';
     const platform = null;
-    const relayRuntimeModule = 'relay-runtime';
     const sourceHash = 'test-hash';
     const extension = 'js';
 
@@ -38,7 +37,6 @@ describe('writeRelayGeneratedFile', () => {
         flowTypes,
         persistQuery,
         platform,
-        relayRuntimeModule,
         sourceHash,
         extension
       );
@@ -73,7 +71,6 @@ describe('writeRelayGeneratedFile', () => {
         flowTypes,
         persistQuery,
         platform,
-        relayRuntimeModule,
         sourceHash,
         extension
       );
@@ -103,7 +100,6 @@ describe('writeRelayGeneratedFile', () => {
         flowTypes,
         persistQuery,
         platform,
-        relayRuntimeModule,
         sourceHash,
         extension
       );
@@ -133,7 +129,6 @@ describe('writeRelayGeneratedFile', () => {
         flowTypes,
         persistQuery,
         platform,
-        relayRuntimeModule,
         sourceHash,
         extension
       );
@@ -162,7 +157,6 @@ describe('writeRelayGeneratedFile', () => {
         flowTypes,
         persistQuery,
         platform,
-        relayRuntimeModule,
         sourceHash,
         extension
       );
