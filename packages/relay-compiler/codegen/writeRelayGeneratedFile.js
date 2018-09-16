@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-present, Facebook, Inc.
+ * Copyright (c) Facebook, Inc. and its affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -29,7 +29,6 @@ async function writeRelayGeneratedFile(
   typeText: string,
   persistQuery: ?(text: string) => Promise<string>,
   platform: ?string,
-  relayRuntimeModule: string,
   sourceHash: string,
   extension: string,
 ): Promise<?GeneratedNode> {
@@ -151,7 +150,6 @@ async function writeRelayGeneratedFile(
     hash: hash ? `@relayHash ${hash}` : null,
     concreteText: dedupeJSONStringify(generatedNode),
     devOnlyAssignments,
-    relayRuntimeModule,
     sourceHash,
   });
 

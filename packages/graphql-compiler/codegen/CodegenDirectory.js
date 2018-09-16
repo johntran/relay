@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-present, Facebook, Inc.
+ * Copyright (c) Facebook, Inc. and its affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -18,12 +18,12 @@ const path = require('path');
 
 import type {SourceControl} from './SourceControl';
 
-type Changes = {
-  deleted: Array<string>,
-  updated: Array<string>,
-  created: Array<string>,
-  unchanged: Array<string>,
-};
+type Changes = {|
+  +deleted: Array<string>,
+  +updated: Array<string>,
+  +created: Array<string>,
+  +unchanged: Array<string>,
+|};
 
 /**
  * CodegenDirectory is a helper class for scripts that generate code into one
