@@ -99,13 +99,13 @@ async function writeRelayGeneratedFile(
         case RelayConcreteNode.REQUEST:
           const operationText = generatedNode.text;
           devOnlyProperties.text = operationText;
-          const queryId = await _persistQuery(nullthrows(operationText));
+          const documentId = await _persistQuery(nullthrows(operationText));
           queryMap = {};
-          queryMap[queryId] = operationText;
+          queryMap[documentId] = operationText;
           generatedNode = {
             ...generatedNode,
             text: null,
-            id: queryId,
+            id: documentId,
           };
           break;
         case RelayConcreteNode.BATCH_REQUEST:
@@ -117,15 +117,15 @@ async function writeRelayGeneratedFile(
             requests: await Promise.all(
               generatedNode.requests.map(async request => {
                 const requestOperationText = request.text;
-                const queryId = await _persistQuery(
+                const documentId = await _persistQuery(
                   nullthrows(requestOperationText),
                 );
                 queryMap = {};
-                queryMap[queryId] = requestOperationText;
+                queryMap[documentId] = requestOperationText;
                 return {
                   ...request,
                   text: null,
-                  id: queryId,
+                  id: documentId,
                 };
               }),
             ),

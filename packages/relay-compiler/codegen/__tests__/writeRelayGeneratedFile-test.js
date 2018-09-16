@@ -28,7 +28,7 @@ describe('writeRelayGeneratedFile', () => {
         name: 'summaryBar_refetch_Query',
         text: 'query product_refetch_Query { viewer { product } }',
       };
-      const expectedQueryId = await persistQuery(node.text);
+      const expectedDocumentId = await persistQuery(node.text);
 
       const generatedNode = await writeRelayGeneratedFile(
         codeGenDir,
@@ -43,13 +43,13 @@ describe('writeRelayGeneratedFile', () => {
 
       expect(codeGenDir.markUnchanged).not.toBeCalled();
       expect(codeGenDir.markUpdated).not.toBeCalled();
-      expect(generatedNode.id).toEqual(expectedQueryId);
+      expect(generatedNode.id).toEqual(expectedDocumentId);
       expect(generatedNode.text).toBeNull();
       expect(codeGenDir.writeFile.mock.calls.length).toEqual(2);
       expect(codeGenDir.writeFile.mock.calls[0][0]).toBe('summaryBar_refetch_Query.graphql.js');
       expect(codeGenDir.writeFile.mock.calls[0][1]).toBe('mockFormatModuleOuput');
       expect(codeGenDir.writeFile).lastCalledWith('summaryBar_refetch_Query.queryMap.json', `{
-  \"${expectedQueryId}\": \"${node.text}\"
+  \"${expectedDocumentId}\": \"${node.text}\"
 }`);
     });
 
@@ -62,7 +62,7 @@ describe('writeRelayGeneratedFile', () => {
           text: 'query product_refetch_Query { viewer { product } }',
         }],
       };
-      const expectedQueryId = await persistQuery(node.requests[0].text);
+      const expectedDocumentId = await persistQuery(node.requests[0].text);
 
       const generatedNode = await writeRelayGeneratedFile(
         codeGenDir,
@@ -77,13 +77,13 @@ describe('writeRelayGeneratedFile', () => {
 
       expect(codeGenDir.markUnchanged).not.toBeCalled();
       expect(codeGenDir.markUpdated).not.toBeCalled();
-      expect(generatedNode.requests[0].id).toEqual(expectedQueryId);
+      expect(generatedNode.requests[0].id).toEqual(expectedDocumentId);
       expect(generatedNode.requests[0].text).toBeNull();
       expect(codeGenDir.writeFile.mock.calls.length).toEqual(2);
       expect(codeGenDir.writeFile.mock.calls[0][0]).toBe('summaryBar_refetch_Query.graphql.js');
       expect(codeGenDir.writeFile.mock.calls[0][1]).toBe('mockFormatModuleOuput');
       expect(codeGenDir.writeFile).lastCalledWith('summaryBar_refetch_Query.queryMap.json', `{
-  \"${expectedQueryId}\": \"${node.requests[0].text}\"
+  \"${expectedDocumentId}\": \"${node.requests[0].text}\"
 }`);
     });
 
