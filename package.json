@@ -17,9 +17,9 @@
     "typecheck": "flow check"
   },
   "dependencies": {
-    "@babel/generator": "7.0.0",
-    "@babel/parser": "7.0.0",
-    "@babel/types": "7.0.0",
+    "@babel/generator": "^7.0.0",
+    "@babel/parser": "^7.0.0",
+    "@babel/types": "^7.0.0",
     "babel-core": "6.25.0",
     "babel-eslint": "9.0.0",
     "babel-plugin-macros": "^2.0.0",
@@ -48,7 +48,7 @@
     "fb-watchman": "^2.0.0",
     "fbjs": "0.8.17",
     "fbjs-scripts": "0.8.3",
-    "flow-bin": "^0.80.0",
+    "flow-bin": "^0.81.0",
     "graphql": "^14.0.0",
     "gulp": "3.9.1",
     "gulp-babel": "7.0.1",

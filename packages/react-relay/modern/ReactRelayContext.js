@@ -11,17 +11,10 @@
 'use strict';
 const React = require('React');
 
-import type {RelayEnvironmentInterface as ClassicEnvironment} from '../classic/store/RelayEnvironment';
-import type {RelayClassicContext} from '../classic/tools/RelayTypes';
-import type {IEnvironment, Variables} from 'relay-runtime';
+import type {RelayContext} from 'relay-runtime';
 
-type ReactRelayCompatContext = {|
-  environment: IEnvironment | ClassicEnvironment,
-  variables: Variables,
-|};
-
-type ContextType = ReactRelayCompatContext | RelayClassicContext | null;
-
-const ReactRelayContext = React.createContext<ContextType>(null);
+const ReactRelayContext: React$Context<RelayContext | null> = React.createContext(
+  null,
+);
 
 module.exports = ReactRelayContext;

@@ -11,7 +11,7 @@
 'use strict';
 
 const React = require('React');
-const ReactRelayPropTypes = require('../ReactRelayPropTypes');
+const ReactRelayContext = require('../ReactRelayContext');
 const ReactRelayQueryRenderer = require('../ReactRelayQueryRenderer');
 const ReactTestRenderer = require('ReactTestRenderer');
 
@@ -459,24 +459,15 @@ describe('ReactRelayQueryRenderer', () => {
   });
 
   describe('context', () => {
-    let ContextGetter;
     let relayContext;
 
     beforeEach(() => {
-      ContextGetter = class extends React.Component {
-        componentDidMount() {
-          relayContext = this.context.relay;
-        }
-        componentDidUpdate() {
-          relayContext = this.context.relay;
-        }
-        render() {
-          return <div />;
-        }
-      };
-      ContextGetter.contextTypes = {
-        relay: ReactRelayPropTypes.Relay,
-      };
+      function ContextGetter() {
+        // $FlowFixMe unstable_read is not yet typed
+        relayContext = ReactRelayContext.unstable_read();
+        return null;
+      }
+
       render = jest.fn(() => <ContextGetter />);
     });
 
@@ -538,8 +529,7 @@ describe('ReactRelayQueryRenderer', () => {
         variables,
       });
 
-      // Context object should be mutated (for compat with gDSFP).
-      expect(relayContext).toBe(previousContext);
+      expect(relayContext).not.toBe(previousContext);
       expect(relayContext.environment).toBe(environment);
       expect(relayContext.variables).toEqual(variables);
     });
@@ -566,8 +556,7 @@ describe('ReactRelayQueryRenderer', () => {
         variables,
       });
 
-      // Context object should be mutated (for compat with gDSFP).
-      expect(relayContext).toBe(previousContext);
+      expect(relayContext).not.toBe(previousContext);
       expect(relayContext.environment).toBe(environment);
       expect(relayContext.variables).toEqual(variables);
     });
@@ -594,8 +583,7 @@ describe('ReactRelayQueryRenderer', () => {
         variables,
       });
 
-      // Context object should be mutated (for compat with gDSFP).
-      expect(relayContext).toBe(previousContext);
+      expect(relayContext).not.toBe(previousContext);
       expect(relayContext.environment).toBe(environment);
       expect(relayContext.variables).toEqual({
         id: '<default>',
